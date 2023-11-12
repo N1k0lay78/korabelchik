@@ -7,6 +7,8 @@ class User(SqlAlchemyBase):
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
     vk_id = sqlalchemy.Column(sqlalchemy.Integer, unique=True)
     page = sqlalchemy.Column(sqlalchemy.String, nullable=False)
+    # TODO
+    roles = None
     age = sqlalchemy.Column(sqlalchemy.Integer)
     is_male = sqlalchemy.Column(sqlalchemy.Boolean)
     # TODO: добавить факультеты в БД

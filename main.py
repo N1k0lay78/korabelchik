@@ -1,7 +1,7 @@
 import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.utils import get_random_id
-from vk_api.keyboard import VkKeyboard, VkKeyboardButton, VkKeyboardColor
+from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 
 from config import token
 from controller.user import is_user_authenticated, signin_user, get_user_page, set_user_age, set_user_gender, \
