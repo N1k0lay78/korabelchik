@@ -61,3 +61,18 @@ class PageAccessDenied(Exception):
 class PageMessageIsNone(Exception):
     def __init__(self, message):
         super().__init__(message)
+
+
+class TextInputAccessDenied(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+
+
+class TextInputPageError(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+
+
+class TextInputFuncError(Exception):
+    def __init__(self, message):
+        super().__init__(message)
