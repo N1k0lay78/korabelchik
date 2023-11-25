@@ -3,7 +3,7 @@ from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.utils import get_random_id
 
 from config import token, db_path
-from controller.user import get_user_page, set_page
+from controller.user import get_user_page, set_page, set_user_gender
 from data import db_session
 from korabelchik.Exceptions import ButtonNameIntersection, ButtonNameNotFound, KeyboardNameIntersection, \
     KeyboardNameNotFound, ButtonAccessDenied, PageNameNotFound, PageNameIntersection, PageAccessDenied
@@ -87,6 +87,9 @@ class Korabelchik:
                     #     break
 
     # --- getters and setters ---
+
+    def set_gender(self, event, male):
+        set_user_gender(event.user_id, male)
 
     def set_page(self, event, page):
         set_page(event.user_id, page)

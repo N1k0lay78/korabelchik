@@ -23,7 +23,10 @@ class Button:
 
     def update(self, bot, event, page, roles):
         if any(role in self.roles for role in roles):
-            self.funcs[page](event, bot, page)
+            if page in self.funcs:
+                self.funcs[page](event, bot, page)
+            else:
+                self.funcs[""](event, bot, page)
         elif self.role_error:
             raise ButtonAccessDenied("Не хватает прав доступа для выполнения логики кнопки")
 
@@ -61,7 +64,7 @@ class Button:
             raise ButtonLengthError("Текст кнопки больше 40 символов")
 
     def check_funcs(self, page):
-        if page is not None and page not in self.funcs:
+        if page is not None and page not in self.funcs and "" not in page:
             raise ButtonFuncError(f"Нет обработчика событий для страницы {page}")
         if not self.funcs:
             raise ButtonFuncError("Нет обработчиков событий")
