@@ -43,7 +43,6 @@ def set_user_age(user_id, age):
 
     user = session.query(User).filter(User.vk_id == user_id).first()
     user.age = int(age)
-    user.page = "male"
     session.add(user)
     session.commit()
 
@@ -55,7 +54,6 @@ def set_user_gender(user_id, male):
 
     user = session.query(User).filter(User.vk_id == user_id).first()
     user.is_male = male == "male"
-    user.page = "faculty"
     session.add(user)
     session.commit()
 
@@ -68,7 +66,6 @@ def set_user_faculty(user_id, faculty):
     user = session.query(User).filter(User.vk_id == user_id).first()
     user.faculty_id = get_faculty_id(faculty)
     user.is_technical = get_faculty_is_technical(faculty)
-    user.page = "main"
     session.add(user)
     session.commit()
 

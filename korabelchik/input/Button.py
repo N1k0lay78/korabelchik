@@ -64,7 +64,7 @@ class Button:
             raise ButtonLengthError("Текст кнопки больше 40 символов")
 
     def check_funcs(self, page):
-        if page is not None and page not in self.funcs and "" not in page:
+        if page is not None and page not in self.funcs and "" not in self.funcs:
             raise ButtonFuncError(f"Нет обработчика событий для страницы {page}")
         if not self.funcs:
             raise ButtonFuncError("Нет обработчиков событий")

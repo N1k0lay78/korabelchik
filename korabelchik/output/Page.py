@@ -2,7 +2,9 @@ from korabelchik.Exceptions import PageAccessDenied, PageMessageIsNone
 
 
 class Page:
-    def __init__(self, name, roles={"user"}):
+    def __init__(self, name, roles=None):
+        if roles is None:
+            roles = {"user"}
         self.__name = name
         self.__roles = roles
         self.__message = None

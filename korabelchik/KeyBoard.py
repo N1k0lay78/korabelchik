@@ -1,5 +1,7 @@
 from vk_api.keyboard import VkKeyboard
 
+from korabelchik.input.NewLine import NewLine
+
 
 class Keyboard:
     def __init__(self, name,  bot, one_time=True):
@@ -40,8 +42,13 @@ class Keyboard:
 
     def get_keyboard(self, roles):
         keyboard = VkKeyboard(one_time=self.one_time)
+        last_is_new_line = True
         for elem in self.__elements:
-            elem.add_element(keyboard, roles)
+            if type(elem) == NewLine and last_is_new_line:
+                pass
+            else:
+                elem.add_element(keyboard, roles)
+            last_is_new_line = type(elem) == NewLine
         self.check_keyboard(keyboard)  # TODO
         return keyboard.get_keyboard()
 

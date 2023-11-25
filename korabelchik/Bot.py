@@ -3,10 +3,11 @@ from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.utils import get_random_id
 
 from config import token, db_path
-from controller.user import get_user_page, set_page, set_user_gender
+from controller.user import get_user_page, set_page, set_user_gender, set_user_age, set_user_faculty
 from data import db_session
 from korabelchik.Exceptions import ButtonNameIntersection, ButtonNameNotFound, KeyboardNameIntersection, \
-    KeyboardNameNotFound, ButtonAccessDenied, PageNameNotFound, PageNameIntersection, PageAccessDenied
+    KeyboardNameNotFound, ButtonAccessDenied, PageNameNotFound, PageNameIntersection, PageAccessDenied, \
+    TextInputPageIntersection
 from korabelchik.input.NewLine import NewLine
 from tools import get_command
 
@@ -43,6 +44,14 @@ class Korabelchik:
                 random_id=get_random_id()
             )
 
+    def send_message(self, event, message, **kwargs):
+        self.vk.messages.send(
+            user_id=event.user_id,
+            message=message,
+            random_id=get_random_id(),
+            **kwargs
+        )
+
     def run(self):
         db_session.global_init(self.db_path)
         for event in self.longpoll.listen():
@@ -63,8 +72,10 @@ class Korabelchik:
                         # TODO: commands
                         pass
                     else:
-                        # TODO: text inputs
-                        pass
+                        try:
+                            self.get_text_input(page).update(self, event, page, roles)
+                        except AttributeError:
+                            print("Нету обработчика")
 
                 while True:
                     page, roles = self.get_info_for_view(event)
@@ -88,8 +99,14 @@ class Korabelchik:
 
     # --- getters and setters ---
 
+    def set_age(self, event, age):
+        set_user_age(event.user_id, age)
+
     def set_gender(self, event, male):
         set_user_gender(event.user_id, male)
+
+    def set_faculty(self, event):
+        set_user_faculty(event.user_id, get_command(event))
 
     def set_page(self, event, page):
         set_page(event.user_id, page)
@@ -148,6 +165,18 @@ class Korabelchik:
             return self.pages[name]
         else:
             raise PageNameNotFound("Нет страницы с таким названием")
+
+    def add_text_input(self, text_input):
+        for page in text_input.get_pages():
+            if page in self.text_inputs:
+                raise TextInputPageIntersection("Для этой страницы уже задано текстовое поле")
+            else:
+                self.text_inputs[page] = text_input
+
+    def get_text_input(self, page):
+        print(page, self.text_inputs)
+        if page in self.text_inputs:
+            return self.text_inputs[page]
 
     def add_button(self, button):
         if button.get_name() in self.buttons:

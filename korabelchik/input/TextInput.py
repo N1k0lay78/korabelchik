@@ -5,10 +5,10 @@ from korabelchik.Exceptions import ButtonLengthError, ButtonFuncError, ButtonPag
 
 
 class TextInput:
-    def __init__(self, page, func, roles=None, role_error=True):
+    def __init__(self, pages, func, roles=None, role_error=True):
         if roles is None:
             roles = {"user"}
-        self.page = page
+        self.pages = pages
         self.func = func
         self.roles = roles
         self.role_error = role_error
@@ -17,12 +17,12 @@ class TextInput:
         if any(role in self.roles for role in roles):
             self.func(event, bot, page)
         elif self.role_error:
-            raise TextInputAccessDenied("Не хватает прав доступа для выполнения логики кнопки")
+            raise TextInputAccessDenied("Не хватает прав доступа для выполнения логики текстового поля")
 
     # --- getters and setters ---
 
-    def get_page(self):
-        return self.page
+    def get_pages(self):
+        return self.pages
 
     # --- checkers ---
 
