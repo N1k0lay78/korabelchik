@@ -166,7 +166,9 @@ def add_for_friends_text_input(bot):
         # проверяем валидность текста
         # TODO: проверка текста
         if len(text) <= 250:
+            print(1)
             bot.set_for_friends(event, text)
+            print(2)
             # TODO: выбор пола пользователя которого мы ищем
             if page == "for friends":
                 bot.set_page(event, "looking for friends")
@@ -207,7 +209,15 @@ def add_main_keyboard(bot):
 
     def go_to_for_friends(event, bot, page):
         if bot.user_is_ready_for_looking_for_friends(event):
-            bot.set_page(event, "looking for friends")
+            # print(1)
+            user_id = bot.get_random_for_friend(event)
+            # print(2, user_id)
+            img, name, surname = bot.get_info_for_looking(user_id)
+            # print(33)
+            text, fac, age, gender = bot.get_for_friends_info(user_id)
+            # print(2)
+            bot.send_full(event.user_id, None, {"message": f"{name} {surname}\n{fac}\nВозраст: {age}\nПол: {gender}\nО себе:\n{text}", "attachment": img})
+            # print(3)
         else:
             bot.set_page(event, "for friends")
 
@@ -218,7 +228,10 @@ def add_main_keyboard(bot):
 
     def go_to_for_interests(event, bot, page):
         if bot.user_is_ready_for_looking_for_interests(event):
-            bot.set_page(event, "looking for interests")
+            user_id = bot.get_random_for_interests(event)
+            img, name, surname = bot.get_info_for_looking(user_id)
+            text, fac, age, gender = bot.get_for_interests_info(user_id)
+            bot.send_full(event.user_id, None, {"message": f"{name} {surname}\n{fac}\nВозраст: {age}\nПол: {gender}\nО себе:\n{text}", "attachment": img})
         else:
             bot.set_page(event, "for interests")
 
@@ -238,8 +251,8 @@ def add_main_keyboard(bot):
     kb_main.add_element(btn_for_friends)
     kb_main.add_element(new_line)
     kb_main.add_element(btn_for_interests)
-    # kb_main.add_element(new_line)
-    # kb_main.add_element(btn_moderation)
+    kb_main.add_element(new_line)
+    kb_main.add_element(btn_moderation)
     kb_main.add_element(new_line)
     kb_main.add_element(bot.get_button("profile"))
 
@@ -257,8 +270,9 @@ def add_profile_keyboard(bot):
     kb_profile.add_element(bot.get_button("go to edit"))
 
     def view_my_form_for_friends(event, bot, page):
-        bot.send_message(event, **bot.get_form_for_friend(event.user_id))
-        bot.set_page(event, "main")
+        img, name, surname = bot.get_info_for_looking(event.user_id)
+        text, fac, age, gender = bot.get_for_friends_info(event.user_id)
+        bot.send_full(event.user_id, None, {"message": f"{name} {surname}\n{fac}\nВозраст: {age}\nПол: {gender}\nО себе:\n{text}", "attachment": img})
 
     btn_view_my_form_for_friends = Button("view my form for friends", "Моя анкета для поиска друзей", color="green")
     btn_view_my_form_for_friends.page("profile", view_my_form_for_friends)
@@ -269,8 +283,9 @@ def add_profile_keyboard(bot):
     kb_profile.add_element(btn_view_my_form_for_friends)
 
     def view_my_form_for_interests(event, bot, page):
-        bot.send_message(event, **bot.get_form_for_interests(event.user_id))
-        bot.set_page(event, "main")
+        img, name, surname = bot.get_info_for_looking(event.user_id)
+        text, fac, age, gender = bot.get_for_interests_info(event.user_id)
+        bot.send_full(event.user_id, None, {"message": f"{name} {surname}\n{fac}\nВозраст: {age}\nПол: {gender}\nО себе:\n{text}", "attachment": img})
 
     btn_view_my_form_for_interests = Button("view my form for interests", "Моя анкета для поиска по интересам", color="green")
     btn_view_my_form_for_interests.page("profile", view_my_form_for_interests)

@@ -1,9 +1,12 @@
 import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.utils import get_random_id
+from vk_api import VkUpload
 
 from config import token, db_path
-from controller.user import get_user_page, set_page, set_user_gender, set_user_age, set_user_faculty
+from controller.user import get_user_page, set_page, set_user_gender, set_user_age, set_user_faculty, get_roles, \
+    user_is_ready_for_looking_for_friends, user_is_ready_for_looking_for_interests, set_for_interests, set_for_friends, \
+    get_for_friends_info, get_for_interests_info, get_random_for_friend, get_random_for_interests
 from data import db_session
 from korabelchik.Exceptions import ButtonNameIntersection, ButtonNameNotFound, KeyboardNameIntersection, \
     KeyboardNameNotFound, ButtonAccessDenied, PageNameNotFound, PageNameIntersection, PageAccessDenied, \
@@ -24,10 +27,27 @@ class Korabelchik:
         self.text_inputs = {}
         self.new_line = NewLine()
         self.keyboards = {}
-
+        self.commands = {}
         self.pages = {}
+
+        self.upload = vk_api.VkUpload(self.vk)
         # TODO
         # self.commands = {}
+
+    def send_full(self, user_id, keyboard, kwargs):
+        if keyboard is not None:
+            self.vk.messages.send(
+                user_id=user_id,
+                random_id=get_random_id(),
+                keyboard=keyboard,
+                **kwargs
+            )
+        else:
+            self.vk.messages.send(
+                user_id=user_id,
+                random_id=get_random_id(),
+                **kwargs
+            )
 
     def send(self, user_id, message, keyboard):
         if keyboard is not None:
@@ -69,13 +89,21 @@ class Korabelchik:
                 else:
                     text = text.strip()
                     if text.startswith("/"):
-                        # TODO: commands
-                        pass
+                        try:
+                            self.get_commandd(text[1:].split()[0]).update(self, event, page, roles)
+                        except AttributeError:
+                            print("Команда не существует")
+                        except Exception as e:
+                            # exception
+                            print(e)
                     else:
                         try:
                             self.get_text_input(page).update(self, event, page, roles)
                         except AttributeError:
-                            print("Нету обработчика")
+                            print("Нет обработчика")
+                        except Exception as e:
+                            # exception
+                            print(e)
 
                 while True:
                     page, roles = self.get_info_for_view(event)
@@ -91,7 +119,7 @@ class Korabelchik:
                         # debug
                         # print(e)
                         self.set_page(event, "main")
-                        print("CHANGE PAGE AT MAIN", self.get_user_page(event))
+                        print(f"CHANGE PAGE FROM '{page}' AT MAIN", self.get_user_page(event))
                     # except Exception as e:
                     #     # exception
                     #     print(e)
@@ -129,8 +157,7 @@ class Korabelchik:
         return get_user_page(event.user_id)
 
     def get_user_roles(self, event):
-        # TODO: получение ролей из БД
-        return {"user"}
+        return get_roles(event.user_id)
 
     def get_text(self, event):
         return event.message
@@ -174,9 +201,18 @@ class Korabelchik:
                 self.text_inputs[page] = text_input
 
     def get_text_input(self, page):
-        print(page, self.text_inputs)
         if page in self.text_inputs:
             return self.text_inputs[page]
+
+    def add_command(self, command):
+        if command.pref in self.commands:
+            raise AttributeError("Такая команда уже существует")
+        else:
+            self.commands[command.pref] = command
+
+    def get_commandd(self, name):
+        if name in self.commands:
+            return self.commands[name]
 
     def add_button(self, button):
         if button.get_name() in self.buttons:
@@ -201,3 +237,43 @@ class Korabelchik:
             return self.keyboards[name]
         else:
             raise KeyboardNameNotFound("Нет клавиатуры с таким названием")
+
+    def user_is_ready_for_looking_for_friends(self, event):
+        return user_is_ready_for_looking_for_friends(event.user_id)
+
+    def user_is_ready_for_looking_for_interests(self, event):
+        return user_is_ready_for_looking_for_interests(event.user_id)
+
+    def get_random_for_friend(self, event):
+        return get_random_for_friend(event.user_id)
+
+    def get_random_for_interests(self, event):
+        return get_random_for_interests(event.user_id)
+
+    def set_for_friends(self, event, text):
+        set_for_friends(event.user_id, text)
+
+    def set_for_interests(self, event, text):
+        set_for_interests(event.user_id, text)
+
+    def get_gender_api(self, event):
+        data = self.vk.users.get(user_id=event.user_id, fields="sex")[0]
+        if data["sex"] == 2:
+            return "male"
+        else:
+            return "female"
+
+    def get_for_friends_info(self, user_id):
+        return get_for_friends_info(user_id)
+
+    def get_for_interests_info(self, user_id):
+        return get_for_interests_info(user_id)
+
+    def get_info_for_looking(self, user_id):
+        data = self.vk.users.get(user_id=user_id, fields="crop_photo")[0]
+        print(data)
+        # upload_image  = self.upload.photo_messages("C:/2023/Bot/korabelchik/Chess Game.png")
+        # return 'photo{}_{}'.format(upload_image['owner_id'], upload_image['id']), data["first_name"], data["last_name"]
+        return data['crop_photo']["photo"]["sizes"][-1]["url"], data["first_name"], data["last_name"]
+        # return data['photo_200'], data["first_name"], data["last_name"]
+        # print(self.vk.photos.get(owner_id=-1, album_id="profile"))

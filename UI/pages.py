@@ -40,6 +40,26 @@ def add_faculty_pages(bot):
     bot.add_page(pg_edit_faculty)
 
 
+def add_texts_for(bot):
+    pg_for_friends = Page("for friends")
+    render_for_friends = lambda event, bot: "Введите текст для поиска друга"
+    pg_for_friends.set_message(render_for_friends)
+    bot.add_page(pg_for_friends)
+
+    pg_edit_for_friends = Page("edit for friends")
+    pg_edit_for_friends.set_message(render_for_friends)
+    bot.add_page(pg_edit_for_friends)
+
+    pg_for_interests = Page("for interests")
+    render_for_interests = lambda event, bot: "Введите текст для поиска по интересам"
+    pg_for_interests.set_message(render_for_interests)
+    bot.add_page(pg_for_interests)
+
+    pg_edit_for_interests = Page("edit for interests")
+    pg_edit_for_interests.set_message(render_for_interests)
+    bot.add_page(pg_edit_for_interests)
+
+
 def add_main_page(bot):
     pg_main = Page("main")
     render_main = lambda event, bot: "Главное меню"
@@ -62,3 +82,25 @@ def add_edit_page(bot):
     pg_edit.set_message(render_edit)
     pg_edit.set_keyboard(bot.get_keyboard("edit"))
     bot.add_page(pg_edit)
+
+
+def add_test_page(bot):
+    pg_text = Page("test")
+    def render_test(bot, event):
+        img, name, surname = bot.get_info_for_looking(event.user_id)
+        return {"message": f"{name}, {surname}", "attachment": img}
+    pg_text.set_message(render_test)
+    bot.add_page(pg_text)
+
+
+def add_my_for_friend(bot):
+    pg_my_for_friends = Page("my for friends")
+
+    def render_my_for_friends(bot, event):
+        # bot.get_gender(event)
+        img, name, surname = bot.get_info_for_looking(event.user_id)
+        text, fac, age, gender = bot.get_for_friends_info(event)
+        bot.send_full({"message": f"{name} {surname}\n{fac}\nВозраст: {age}\nПол: {gender}\nО себе:\n{text}", "attachment": img})
+
+    pg_my_for_friends.set_message(render_my_for_friends)
+    bot.add_page(pg_my_for_friends)

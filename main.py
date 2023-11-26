@@ -13,7 +13,7 @@ db_session.global_init("db/korabelchik.sqlite")
 
 vk_session = vk_api.VkApi(token=token)
 longpoll = VkLongPoll(vk_session)
-vk = vk_session.get_api()
+# vk = vk_session.get_api()
 
 print("start")
 for event in longpoll.listen():
@@ -40,7 +40,6 @@ for event in longpoll.listen():
                 set_page(event.user_id, "main")
 
         page = get_user_page(event.user_id)
-        print(page, page == "settings")
         if page == "age":
             #TODO: сделать ввод через сообщение
             keyboard = VkKeyboard(one_time=True)

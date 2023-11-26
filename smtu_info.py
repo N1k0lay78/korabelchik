@@ -35,7 +35,14 @@ faculty_id = {
 }
 
 faculty_keys = ["fcpt", "fmp", "fkio", "fkeia", "feigo", "ief"]
-
+faculty_longs_keys = [
+    "Факультет цифровых промышленных технологий",
+    "Факультет морского приборостроения",
+    "Факультет кораблестроения и океанотехники",
+    "Факультет корабельной энергетики и автоматики",
+    "Факультет естественнонаучного и гуманитарного образования",
+    "Инженерно-экономический факультет",
+]
 
 def get_faculties():
     return faculty_keys
@@ -43,6 +50,10 @@ def get_faculties():
 
 def get_faculty(id):
     return faculty_keys[id - 1]
+
+
+def get_faculty_longs_keys(id):
+    return faculty_longs_keys[id - 1]
 
 
 def get_faculty_short(faculty):

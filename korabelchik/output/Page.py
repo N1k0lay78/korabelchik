@@ -13,9 +13,17 @@ class Page:
     def render(self, bot, event, roles):
         if any(role in self.__roles for role in roles):
             if self.__keyboard:
-                bot.send(event.user_id, self.__message(bot, event), self.__keyboard.get_keyboard(roles))
+                res = self.__message(bot, event)
+                if type(res) == str:
+                    bot.send(event.user_id, self.__message(bot, event), self.__keyboard.get_keyboard(roles))
+                if type(res) == dict:
+                    bot.send_full(event.user_id, self.__keyboard.get_keyboard(roles), res)
             else:
-                bot.send(event.user_id, self.__message(bot, event), self.__keyboard)
+                res = self.__message(bot, event)
+                if type(res) == str:
+                    bot.send(event.user_id, self.__message(bot, event), self.__keyboard)
+                if type(res) == dict:
+                    bot.send_full(event.user_id, self.__keyboard, res)
         else:
             raise PageAccessDenied("Не хватает прав доступа для открытия страницы")
 

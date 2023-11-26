@@ -22,7 +22,7 @@ class Button:
         self.funcs[page] = func
 
     def update(self, bot, event, page, roles):
-        if any(role in self.roles for role in roles):
+        if self.check_roles(roles):
             if page in self.funcs:
                 self.funcs[page](event, bot, page)
             else:
@@ -31,7 +31,7 @@ class Button:
             raise ButtonAccessDenied("Не хватает прав доступа для выполнения логики кнопки")
 
     def add_element(self, keyboard, roles):
-        if any(role in self.roles for role in roles):
+        if self.check_roles(roles):
             keyboard.add_button(self.text, self.color, {"command": self.name})
         elif self.role_error:
             raise ButtonAccessDenied("Не хватает прав доступа для добавления кнопки")
@@ -58,6 +58,9 @@ class Button:
         self.check_text()
         self.check_funcs(page)
 
+    def check_roles(self, roles):
+        return any(role in self.roles for role in roles)
+
     def check_text(self):
         if len(self.text) > 40:
             # print(self.text)
@@ -68,6 +71,9 @@ class Button:
             raise ButtonFuncError(f"Нет обработчика событий для страницы {page}")
         if not self.funcs:
             raise ButtonFuncError("Нет обработчиков событий")
+
+    def __repr__(self):
+        return f"BUTTON name='{self.name}'"
 
 
 if __name__ == '__main__':

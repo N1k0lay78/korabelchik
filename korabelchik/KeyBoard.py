@@ -43,12 +43,16 @@ class Keyboard:
     def get_keyboard(self, roles):
         keyboard = VkKeyboard(one_time=self.one_time)
         last_is_new_line = True
+        # print("MENU: ", end="")
         for elem in self.__elements:
             if type(elem) == NewLine and last_is_new_line:
                 pass
             else:
                 elem.add_element(keyboard, roles)
-            last_is_new_line = type(elem) == NewLine
+                # print(elem, end=", ")
+            if elem.check_roles(roles):
+                last_is_new_line = type(elem) == NewLine
+        # print()
         self.check_keyboard(keyboard)  # TODO
         return keyboard.get_keyboard()
 
