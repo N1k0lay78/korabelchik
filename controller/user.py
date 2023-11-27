@@ -230,7 +230,7 @@ def get_random_for_friend(user_id):
     session.close()
 
     if user:
-        return user.user_id
+        return user.vk_id
 
 def get_random_for_interests(user_id):
     session = db_session.create_session()
@@ -238,7 +238,7 @@ def get_random_for_interests(user_id):
     session.close()
 
     if user:
-        return user.user_id
+        return user.vk_id
 
 
 def get_for_friends_info(user_id):
