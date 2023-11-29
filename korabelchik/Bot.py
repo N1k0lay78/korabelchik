@@ -1,4 +1,5 @@
 import vk_api
+from requests import ReadTimeout
 from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.utils import get_random_id
 from vk_api import VkUpload
@@ -74,56 +75,59 @@ class Korabelchik:
 
     def run(self):
         db_session.global_init(self.db_path)
-        for event in self.longpoll.listen():
-            if event.type == VkEventType.MESSAGE_NEW and event.to_me:
-                page, roles, button_name, text = self.get_info_for_logic(event)
-                if button_name:
-                    try:
-                        self.get_button(button_name).update(self, event, page, roles)
-                    except ButtonAccessDenied as e:
-                        # debug
-                        print(e)
-                    except Exception as e:
-                        # exception
-                        print(e)
-                else:
-                    text = text.strip()
-                    if text.startswith("/"):
+        try:
+            for event in self.longpoll.listen():
+                if event.type == VkEventType.MESSAGE_NEW and event.to_me:
+                    page, roles, button_name, text = self.get_info_for_logic(event)
+                    if button_name:
                         try:
-                            self.get_commandd(text[1:].split()[0]).update(self, event, page, roles)
-                        except AttributeError:
-                            print("Команда не существует")
+                            self.get_button(button_name).update(self, event, page, roles)
+                        except ButtonAccessDenied as e:
+                            # debug
+                            print(e)
                         except Exception as e:
                             # exception
                             print(e)
                     else:
+                        text = text.strip()
+                        if text.startswith("/"):
+                            try:
+                                self.get_commandd(text[1:].split()[0]).update(self, event, page, roles)
+                            except AttributeError:
+                                print("Команда не существует")
+                            except Exception as e:
+                                # exception
+                                print(e)
+                        else:
+                            try:
+                                self.get_text_input(page).update(self, event, page, roles)
+                            except AttributeError:
+                                print("Нет обработчика")
+                            except Exception as e:
+                                # exception
+                                print(e)
+    
+                    while True:
+                        page, roles = self.get_info_for_view(event)
                         try:
-                            self.get_text_input(page).update(self, event, page, roles)
-                        except AttributeError:
-                            print("Нет обработчика")
-                        except Exception as e:
-                            # exception
-                            print(e)
-
-                while True:
-                    page, roles = self.get_info_for_view(event)
-                    try:
-                        self.get_page(page).render(self, event, roles)
-                        break
-                    except PageAccessDenied:
-                        # debug
-                        # print(e)
-                        self.set_page(event, "main")
-                        print("CHANGE PAGE AT MAIN", self.get_user_page(event))
-                    except PageNameNotFound:
-                        # debug
-                        # print(e)
-                        self.set_page(event, "main")
-                        print(f"CHANGE PAGE FROM '{page}' AT MAIN", self.get_user_page(event))
-                    # except Exception as e:
-                    #     # exception
-                    #     print(e)
-                    #     break
+                            self.get_page(page).render(self, event, roles)
+                            break
+                        except PageAccessDenied:
+                            # debug
+                            # print(e)
+                            self.set_page(event, "main")
+                            print("CHANGE PAGE AT MAIN", self.get_user_page(event))
+                        except PageNameNotFound:
+                            # debug
+                            # print(e)
+                            self.set_page(event, "main")
+                            print(f"CHANGE PAGE FROM '{page}' AT MAIN", self.get_user_page(event))
+                        # except Exception as e:
+                        #     # exception
+                        #     print(e)
+                        #     break
+        except ReadTimeout:
+            pass
 
     # --- getters and setters ---
 
