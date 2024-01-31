@@ -6,8 +6,8 @@ from vk_api import VkUpload
 
 from config import token, db_path
 from controller.user import get_user_page, set_page, set_user_gender, set_user_age, set_user_faculty, get_roles, \
-    user_is_ready_for_looking_for_friends, user_is_ready_for_looking_for_interests, set_for_interests, set_for_friends, \
-    get_for_friends_info, get_for_interests_info, get_random_for_friend, get_random_for_interests
+    user_is_ready_for_looking_for_people, set_for_people, \
+    get_for_people_info, get_random_for_people
 from data import db_session
 from korabelchik.Exceptions import ButtonNameIntersection, ButtonNameNotFound, KeyboardNameIntersection, \
     KeyboardNameNotFound, ButtonAccessDenied, PageNameNotFound, PageNameIntersection, PageAccessDenied, \
@@ -34,6 +34,14 @@ class Korabelchik:
         self.upload = vk_api.VkUpload(self.vk)
         # TODO
         # self.commands = {}
+
+    def send_for_people(self, to_user_id, about_user_id):
+        img, name, _surname = self.get_info_for_looking(about_user_id)
+        text, fac, age, gender = self.get_for_people_info(about_user_id)
+        # работает - не трогай, checked by rjkzavr at 1-100 yo
+        yo = ("год" if age % 10 == 1 else "года") if (5 > age % 10 > 0) and age // 10 != 1 else "лет"
+        self.send_full(to_user_id, None,
+                      {"message": f"{name}, {age} {yo}\n{fac}\nПол: {gender}\n\nО себе:\n{text}", "attachment": img})
 
     def send_full(self, user_id, keyboard, kwargs):
         if keyboard is not None:
@@ -242,23 +250,23 @@ class Korabelchik:
         else:
             raise KeyboardNameNotFound("Нет клавиатуры с таким названием")
 
-    def user_is_ready_for_looking_for_friends(self, event):
-        return user_is_ready_for_looking_for_friends(event.user_id)
+    def user_is_ready_for_looking_for_people(self, event):
+        return user_is_ready_for_looking_for_people(event.user_id)
 
-    def user_is_ready_for_looking_for_interests(self, event):
-        return user_is_ready_for_looking_for_interests(event.user_id)
+    # def user_is_ready_for_looking_for_interests(self, event):
+    #     return user_is_ready_for_looking_for_interests(event.user_id)
 
-    def get_random_for_friend(self, event):
-        return get_random_for_friend(event.user_id)
+    def get_random_for_people(self, event):
+        return get_random_for_people(event.user_id)
 
-    def get_random_for_interests(self, event):
-        return get_random_for_interests(event.user_id)
+    # def get_random_for_interests(self, event):
+    #     return get_random_for_interests(event.user_id)
 
-    def set_for_friends(self, event, text):
-        set_for_friends(event.user_id, text)
+    def set_for_people(self, event, text):
+        set_for_people(event.user_id, text)
 
-    def set_for_interests(self, event, text):
-        set_for_interests(event.user_id, text)
+    # def set_for_interests(self, event, text):
+    #     set_for_interests(event.user_id, text)
 
     def get_gender_api(self, event):
         data = self.vk.users.get(user_id=event.user_id, fields="sex")[0]
@@ -267,11 +275,11 @@ class Korabelchik:
         else:
             return "female"
 
-    def get_for_friends_info(self, user_id):
-        return get_for_friends_info(user_id)
+    def get_for_people_info(self, user_id):
+        return get_for_people_info(user_id)
 
-    def get_for_interests_info(self, user_id):
-        return get_for_interests_info(user_id)
+    """def get_for_interests_info(self, user_id):
+        return get_for_interests_info(user_id)"""
 
     def get_info_for_looking(self, user_id):
         data = self.vk.users.get(user_id=user_id, fields="crop_photo")[0]

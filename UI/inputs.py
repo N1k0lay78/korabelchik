@@ -156,20 +156,18 @@ def add_faculty_keyboard(bot):
     bot.add_keyboard(kb_edit_faculty)
 
 
+"""
 # --- for friends ---
 # не обязательное поле. Указывается перед поиском друзей, если не задано
 def add_for_friends_text_input(bot):
     def set_for_friends(event, bot, page):
         text = event.text
+        # проверяем валидность текста
         text = text.replace("SELECT", "").replace("FROM", "").replace("WHERE", "").replace("GROUP BY", "").replace("HAVING", "") \
             .replace("ORDER BY", "")
-        # проверяем валидность текста
         # TODO: проверка текста
         if len(text) <= 250:
-            print(1)
             bot.set_for_friends(event, text)
-            print(2)
-            # TODO: выбор пола пользователя которого мы ищем
             if page == "for friends":
                 bot.set_page(event, "looking for friends")
             else:
@@ -179,53 +177,46 @@ def add_for_friends_text_input(bot):
 
     ti_for_friends = TextInput({"for friends", "edit for friends"}, set_for_friends)
     bot.add_text_input(ti_for_friends)
+"""
 
-
-# --- for interests ---
-# не обязательное поле. Указывается перед поиском друзей, если не задано
-def add_for_interests_text_input(bot):
-    def set_for_interests(event, bot, page):
+# --- for ppl ---
+# не обязательное поле. Указывается перед поиском людей, если не задано
+def add_for_people_text_input(bot):
+    def set_for_people(event, bot, page):
         text = event.text
         text = text.replace("SELECT", "").replace("FROM", "").replace("WHERE", "").replace("GROUP BY", "").replace("HAVING", "") \
             .replace("ORDER BY", "")
         # проверяем валидность текста
         # TODO: проверка текста
         if len(text) < 250:
-            bot.set_for_interests(event, text)
+            bot.set_for_people(event, text)
             # TODO: выбор пола пользователя которого мы ищем
-            if page == "for interests":
-                bot.set_page(event, "looking for interests")
+            if page == "for people":
+                bot.set_page(event, "looking for people")
             else:
                 go_to_edit(event, bot, page)
         else:
             bot.send_message(event, f"Ваш текст слишком длинный: {len(text)} символов, максимум 250.")
 
-    ti_for_interests = TextInput({"for interests", "edit for interests"}, set_for_interests)
-    bot.add_text_input(ti_for_interests)
+    ti_for_people = TextInput({"for people", "edit for people"}, set_for_people)
+    bot.add_text_input(ti_for_people)
 
 
 # --- main ---
 def add_main_keyboard(bot):
 
-    def go_to_for_friends(event, bot, page):
-        if bot.user_is_ready_for_looking_for_friends(event):
-            # print(1)
-            user_id = bot.get_random_for_friend(event)
-            # print(2, user_id)
-            img, name, surname = bot.get_info_for_looking(user_id)
-            # print(33)
-            text, fac, age, gender = bot.get_for_friends_info(user_id)
-            # print(2)
-            bot.send_full(event.user_id, None, {"message": f"{name} {surname}\n{fac}\nВозраст: {age}\nПол: {gender}\nО себе:\n{text}", "attachment": img})
-            # print(3)
+    def go_to_for_people(event, bot, page):
+        if bot.user_is_ready_for_looking_for_people(event):
+            user_id = bot.get_random_for_people(event)
+            bot.send_for_people(event.user_id, user_id)
         else:
-            bot.set_page(event, "for friends")
+            bot.set_page(event, "for people")
 
-    btn_for_friends = Button("for friends", "Найти друга")
-    btn_for_friends.page("main", go_to_for_friends)
+    btn_for_people = Button("for people", "Искать людей")
+    btn_for_people.page("main", go_to_for_people)
 
-    bot.add_button(btn_for_friends)
-
+    bot.add_button(btn_for_people)
+    """
     def go_to_for_interests(event, bot, page):
         if bot.user_is_ready_for_looking_for_interests(event):
             user_id = bot.get_random_for_interests(event)
@@ -239,6 +230,7 @@ def add_main_keyboard(bot):
     btn_for_interests.page("main", go_to_for_interests)
 
     bot.add_button(btn_for_interests)
+    """
 
     go_to_moderation = lambda event, bot, page: bot.set_page(event, "moderation")
 
@@ -248,9 +240,9 @@ def add_main_keyboard(bot):
     bot.add_button(btn_moderation)
 
     kb_main = Keyboard("main", bot)
-    kb_main.add_element(btn_for_friends)
-    kb_main.add_element(new_line)
-    kb_main.add_element(btn_for_interests)
+    kb_main.add_element(btn_for_people)
+    # kb_main.add_element(new_line)
+    # kb_main.add_element(btn_for_interests)
     kb_main.add_element(new_line)
     kb_main.add_element(btn_moderation)
     kb_main.add_element(new_line)
@@ -269,23 +261,24 @@ def add_profile_keyboard(bot):
     # редактирование
     kb_profile.add_element(bot.get_button("go to edit"))
 
-    def view_my_form_for_friends(event, bot, page):
-        img, name, surname = bot.get_info_for_looking(event.user_id)
-        text, fac, age, gender = bot.get_for_friends_info(event.user_id)
-        bot.send_full(event.user_id, None, {"message": f"{name} {surname}\n{fac}\nВозраст: {age}\nПол: {gender}\nО себе:\n{text}", "attachment": img})
+    def view_my_form_for_people(event, bot, page):
+        bot.send_for_people(event.user_id, event.user_id)
 
-    btn_view_my_form_for_friends = Button("view my form for friends", "Моя анкета для поиска друзей", color="green")
-    btn_view_my_form_for_friends.page("profile", view_my_form_for_friends)
+    btn_view_my_form_for_people = Button("view my form for people", "Моя анкета для поиска людей", color="green")
+    btn_view_my_form_for_people.page("profile", view_my_form_for_people)
 
-    # моя анкета для поиска друзей
-    bot.add_button(btn_view_my_form_for_friends)
+    # моя анкета для поиска людей
+    bot.add_button(btn_view_my_form_for_people)
     kb_profile.add_element(new_line)
-    kb_profile.add_element(btn_view_my_form_for_friends)
+    kb_profile.add_element(btn_view_my_form_for_people)
 
+    """
     def view_my_form_for_interests(event, bot, page):
-        img, name, surname = bot.get_info_for_looking(event.user_id)
+        img, name, _surname = bot.get_info_for_looking(event.user_id)
         text, fac, age, gender = bot.get_for_interests_info(event.user_id)
-        bot.send_full(event.user_id, None, {"message": f"{name} {surname}\n{fac}\nВозраст: {age}\nПол: {gender}\nО себе:\n{text}", "attachment": img})
+        yo = ("год" if age % 10 == 1 else "года") if (5 > age % 10 > 0) and age // 10 != 1 else "лет"
+        bot.send_full(event.user_id, None,
+                      {"message": f"{name}, {age} {yo}, {fac}\nПол: {gender}\n\nО себе:\n{text}", "attachment": img})
 
     btn_view_my_form_for_interests = Button("view my form for interests", "Моя анкета для поиска по интересам", color="green")
     btn_view_my_form_for_interests.page("profile", view_my_form_for_interests)
@@ -294,20 +287,21 @@ def add_profile_keyboard(bot):
     bot.add_button(btn_view_my_form_for_interests)
     kb_profile.add_element(new_line)
     kb_profile.add_element(btn_view_my_form_for_interests)
-
-    def disable_my_form_for_friends(event, bot, page):
-        bot.disable_form_for_friend(event.user_id)
-        bot.send_message(event, "Ваша форма по поиску друзей отключена")
+    """
+    def disable_my_form_for_people(event, bot, page):
+        bot.disable_form_for_people(event.user_id)
+        bot.send_message(event, "Ваша форма по поиску людей отключена")
         bot.set_page(event, "main")
 
-    btn_disable_my_form_for_friends = Button("disable my form for friends", "Выключить поиск друзей", color="red")
-    btn_disable_my_form_for_friends.page("profile", disable_my_form_for_friends)
+    btn_disable_my_form_for_people = Button("disable my form for people", "Выключить поиск людей", color="red")
+    btn_disable_my_form_for_people.page("profile", disable_my_form_for_people)
 
-    # выключить поиск друзей
-    bot.add_button(btn_disable_my_form_for_friends)
+    # выключить поиск людей
+    bot.add_button(btn_disable_my_form_for_people)
     kb_profile.add_element(new_line)
-    kb_profile.add_element(btn_disable_my_form_for_friends)
+    kb_profile.add_element(btn_disable_my_form_for_people)
 
+    """
     def disable_my_form_for_interests(event, bot, page):
         bot.disable_form_for_interests(event.user_id)
         bot.send_message(event, "Ваша форма для поиска по интересам отключена")
@@ -320,6 +314,7 @@ def add_profile_keyboard(bot):
     bot.add_button(btn_disable_my_form_for_interests)
     kb_profile.add_element(new_line)
     kb_profile.add_element(btn_disable_my_form_for_interests)
+    """
 
     bot.add_keyboard(kb_profile)
 
@@ -370,16 +365,17 @@ def add_edit_keyboard(bot):
     kb_edit.add_element(new_line)
     kb_edit.add_element(btn_go_to_edit_course)
 
-    # for friends
-    go_to_edit_for_friends = lambda event, bot, page: bot.set_page(event, "edit for friends")
+    # for people
+    go_to_edit_for_people = lambda event, bot, page: bot.set_page(event, "edit for people")
 
-    btn_go_to_edit_for_friends = Button("go to edit for friends", "Изменить текст для поиска друзей")
-    btn_go_to_edit_for_friends.page("edit", go_to_edit_for_friends)
+    btn_go_to_edit_for_people = Button("go to edit for people", "Изменить текст для поиска людей")
+    btn_go_to_edit_for_people.page("edit", go_to_edit_for_people)
 
-    bot.add_button(btn_go_to_edit_for_friends)
+    bot.add_button(btn_go_to_edit_for_people)
     kb_edit.add_element(new_line)
-    kb_edit.add_element(btn_go_to_edit_for_friends)
+    kb_edit.add_element(btn_go_to_edit_for_people)
 
+    """
     # for interests
     go_to_edit_for_interests = lambda event, bot, page: bot.set_page(event, "edit for interests")
 
@@ -389,16 +385,17 @@ def add_edit_keyboard(bot):
     bot.add_button(btn_go_to_edit_for_interests)
     kb_edit.add_element(new_line)
     kb_edit.add_element(btn_go_to_edit_for_interests)
+    """
 
     bot.add_keyboard(kb_edit)
 
 
-# --- looking for friends ---
-def add_looking_for_friends_keyboard(bot):
+# --- looking for people ---
+def add_looking_for_people_keyboard(bot):
     # TODO
-    kb_looking_for_friends = Keyboard("looking for friends", bot)
+    kb_looking_for_people = Keyboard("looking for people", bot)
 
-    kb_looking_for_friends.add_element(bot.get_button("profile"))
+    kb_looking_for_people.add_element(bot.get_button("profile"))
 
     # отправить заявку
     send_requiest = lambda event, bot, page: bot.send_requiest(event, "edit age")
@@ -407,7 +404,7 @@ def add_looking_for_friends_keyboard(bot):
     btn_go_to_edit_age.page("edit", send_requiest)
 
     bot.add_button(btn_go_to_edit_age)
-    kb_looking_for_friends.add_element(btn_go_to_edit_age)
+    kb_looking_for_people.add_element(btn_go_to_edit_age)
 
 
 # --- looking for interests ---

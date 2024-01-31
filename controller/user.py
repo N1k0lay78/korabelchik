@@ -183,27 +183,28 @@ def set_page(user_id, page):
     session.close()
 
 
-def user_is_ready_for_looking_for_friends(user_id):
+def user_is_ready_for_looking_for_people(user_id):
     session = db_session.create_session()
 
     user = session.query(User).filter(User.vk_id == user_id).first()
 
     session.close()
-    return user.for_friends is not None
+    return user.for_people is not None
 
 
 
-def set_for_friends(user_id, text):
+def set_for_people(user_id, text):
     session = db_session.create_session()
 
     user = session.query(User).filter(User.vk_id == user_id).first()
-    user.for_friends = text
+    user.for_people = text
     session.add(user)
     session.commit()
 
     session.close()
 
 
+"""
 def set_for_interests(user_id, text):
     session = db_session.create_session()
 
@@ -222,16 +223,17 @@ def user_is_ready_for_looking_for_interests(user_id):
 
     session.close()
     return user.for_interests is not None
+"""
 
-
-def get_random_for_friend(user_id):
+def get_random_for_people(user_id):
     session = db_session.create_session()
-    user = session.query(User).filter(User.vk_id != user_id, User.for_friends is not None).order_by(func.random()).first()
+    user = session.query(User).filter(User.vk_id != user_id, User.for_people is not None).order_by(func.random()).first()
     session.close()
 
     if user:
         return user.vk_id
 
+"""
 def get_random_for_interests(user_id):
     session = db_session.create_session()
     user = session.query(User).filter(User.vk_id != user_id, User.for_interests is not None).order_by(func.random()).first()
@@ -239,23 +241,24 @@ def get_random_for_interests(user_id):
 
     if user:
         return user.vk_id
+"""
 
-
-def get_for_friends_info(user_id):
+def get_for_people_info(user_id):
     session = db_session.create_session()
-    # user = session.query(User).filter(User.vk_id != user_id, User.for_friends is not None).order_by(func.random()).first()
+    # user = session.query(User).filter(User.vk_id != user_id, User.for_people is not None).order_by(func.random()).first()
     user = session.query(User).filter(User.vk_id == user_id).first()
-    res = user.for_friends, get_faculty_longs_keys(user.faculty_id), user.age, "мужской" if user.is_male else "женский"
+    res = user.for_people, get_faculty_longs_keys(user.faculty_id), user.age, "мужской" if user.is_male else "женский"
     session.close()
 
     return res
 
-
+"""
 def get_for_interests_info(user_id):
     session = db_session.create_session()
-    # user = session.query(User).filter(User.vk_id != user_id, User.for_friends is not None).order_by(func.random()).first()
+    # user = session.query(User).filter(User.vk_id != user_id, User.for_interests is not None).order_by(func.random()).first()
     user = session.query(User).filter(User.vk_id == user_id).first()
     res = user.for_interests, get_faculty_longs_keys(user.faculty_id), user.age, "мужской" if user.is_male else "женский"
     session.close()
 
     return res
+"""

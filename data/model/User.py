@@ -15,12 +15,12 @@ class User(SqlAlchemyBase):
     faculty_id = sqlalchemy.Column(sqlalchemy.Integer)
     is_technical = sqlalchemy.Column(sqlalchemy.Boolean)
     # добавить нужную инфу
-    for_friends = sqlalchemy.Column(sqlalchemy.String)
-    for_interests = sqlalchemy.Column(sqlalchemy.String)
+    for_people = sqlalchemy.Column(sqlalchemy.String)
+    # for_interests = sqlalchemy.Column(sqlalchemy.String)
     # TODO
-    is_muted_for_friends = sqlalchemy.Column(sqlalchemy.Boolean, default=False, server_default="0")
-    is_muted_for_interests = sqlalchemy.Column(sqlalchemy.Boolean, default=False, server_default="0")
-    reports_for_friends = None
-    reports_for_interests = None
+    is_muted_for_people = sqlalchemy.Column(sqlalchemy.Boolean, default=False, server_default="0")
+    # is_muted_for_interests = sqlalchemy.Column(sqlalchemy.Boolean, default=False, server_default="0")
+    reports_for_people = None
+    # reports_for_interests = None
     # END
     roles = orm.relationship("Role", back_populates="user")

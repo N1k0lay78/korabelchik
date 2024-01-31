@@ -41,23 +41,23 @@ def add_faculty_pages(bot):
 
 
 def add_texts_for(bot):
-    pg_for_friends = Page("for friends")
-    render_for_friends = lambda event, bot: "Введите текст для поиска друга"
-    pg_for_friends.set_message(render_for_friends)
-    bot.add_page(pg_for_friends)
+    pg_for_people = Page("for people")
+    render_for_people = lambda event, bot: "Расскажи о себе и кого хочешь найти, чем предлагаешь заняться. Это поможет лучше подобрать тебе компанию."
+    pg_for_people.set_message(render_for_people)
+    bot.add_page(pg_for_people)
 
-    pg_edit_for_friends = Page("edit for friends")
-    pg_edit_for_friends.set_message(render_for_friends)
-    bot.add_page(pg_edit_for_friends)
+    pg_edit_for_people = Page("edit for people")
+    pg_edit_for_people.set_message(render_for_people)
+    bot.add_page(pg_edit_for_people)
 
-    pg_for_interests = Page("for interests")
+    """pg_for_interests = Page("for interests")
     render_for_interests = lambda event, bot: "Введите текст для поиска по интересам"
     pg_for_interests.set_message(render_for_interests)
     bot.add_page(pg_for_interests)
 
     pg_edit_for_interests = Page("edit for interests")
     pg_edit_for_interests.set_message(render_for_interests)
-    bot.add_page(pg_edit_for_interests)
+    bot.add_page(pg_edit_for_interests)"""
 
 
 def add_main_page(bot):
@@ -93,14 +93,12 @@ def add_test_page(bot):
     bot.add_page(pg_text)
 
 
-def add_my_for_friend(bot):
-    pg_my_for_friends = Page("my for friends")
+def add_my_for_people(bot):
+    pg_my_for_people = Page("my for people")
 
-    def render_my_for_friends(bot, event):
+    def render_my_for_people(bot, event):
         # bot.get_gender(event)
-        img, name, surname = bot.get_info_for_looking(event.user_id)
-        text, fac, age, gender = bot.get_for_friends_info(event)
-        bot.send_full({"message": f"{name} {surname}\n{fac}\nВозраст: {age}\nПол: {gender}\nО себе:\n{text}", "attachment": img})
+        bot.send_for_people(event.user_id, event.user_id)
 
-    pg_my_for_friends.set_message(render_my_for_friends)
-    bot.add_page(pg_my_for_friends)
+    pg_my_for_people.set_message(render_my_for_people)
+    bot.add_page(pg_my_for_people)
