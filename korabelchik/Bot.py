@@ -3,6 +3,7 @@ from requests import ReadTimeout
 from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.utils import get_random_id
 from vk_api import VkUpload
+import requests
 
 from config import token, db_path
 from controller.user import get_user_page, set_page, set_user_gender, set_user_age, set_user_faculty, get_roles, \
@@ -21,6 +22,7 @@ class Korabelchik:
         self.token = token
         self.db_path = db_path
         vk_session = vk_api.VkApi(token=self.token)
+        self.session = requests.Session()
         self.longpoll = VkLongPoll(vk_session)
         self.vk = vk_session.get_api()
 
@@ -40,8 +42,12 @@ class Korabelchik:
         text, fac, age, gender = self.get_for_people_info(about_user_id)
         # работает - не трогай, checked by rjkzavr at 1-100 yo
         yo = ("год" if age % 10 == 1 else "года") if (5 > age % 10 > 0) and age // 10 != 1 else "лет"
+        image = self.session.get(img, stream=True)
+        photo = self.upload.photo_messages(photos=image.raw)[0]
         self.send_full(to_user_id, None,
-                      {"message": f"{name}, {age} {yo}\n{fac}\nПол: {gender}\n\nО себе:\n{text}", "attachment": img})
+                      {"message": f"{name}, {age} {yo}\n{fac}\nПол: {gender}\n\nО себе:\n{text}",
+                       "attachment": 'photo{}_{}'.format(photo['owner_id'], photo['id'])}
+        )
 
     def send_full(self, user_id, keyboard, kwargs):
         if keyboard is not None:
@@ -93,9 +99,9 @@ class Korabelchik:
                         except ButtonAccessDenied as e:
                             # debug
                             print(e)
-                        except Exception as e:
-                            # exception
-                            print(e)
+                        # except Exception as e:
+                        #     # exception
+                        #     print(e)
                     else:
                         text = text.strip()
                         if text.startswith("/"):
@@ -103,17 +109,17 @@ class Korabelchik:
                                 self.get_commandd(text[1:].split()[0]).update(self, event, page, roles)
                             except AttributeError:
                                 print("Команда не существует")
-                            except Exception as e:
-                                # exception
-                                print(e)
+                            # except Exception as e:
+                            #     # exception
+                            #     print(e)
                         else:
                             try:
                                 self.get_text_input(page).update(self, event, page, roles)
                             except AttributeError:
                                 print("Нет обработчика")
-                            except Exception as e:
-                                # exception
-                                print(e)
+                            # except Exception as e:
+                            #     # exception
+                            #     print(e)
     
                     while True:
                         page, roles = self.get_info_for_view(event)
@@ -282,10 +288,11 @@ class Korabelchik:
         return get_for_interests_info(user_id)"""
 
     def get_info_for_looking(self, user_id):
-        data = self.vk.users.get(user_id=user_id, fields="crop_photo")[0]
-        print(data)
-        # upload_image  = self.upload.photo_messages("C:/2023/Bot/korabelchik/Chess Game.png")
-        # return 'photo{}_{}'.format(upload_image['owner_id'], upload_image['id']), data["first_name"], data["last_name"]
-        return data['crop_photo']["photo"]["sizes"][-1]["url"], data["first_name"], data["last_name"]
-        # return data['photo_200'], data["first_name"], data["last_name"]
-        # print(self.vk.photos.get(owner_id=-1, album_id="profile"))
+        data = self.vk.users.get(user_id=user_id, fields="crop_photo")
+        if data:
+            data = data[0]
+            # upload_image  = self.upload.photo_messages("C:/2023/Bot/korabelchik/Chess Game.png")
+            # return 'photo{}_{}'.format(upload_image['owner_id'], upload_image['id']), data["first_name"], data["last_name"]
+            return data['crop_photo']["photo"]["sizes"][-1]["url"], data["first_name"], data["last_name"]
+            # return data['photo_200'], data["first_name"], data["last_name"]
+            # print(self.vk.photos.get(owner_id=-1, album_id="profile"))
