@@ -18,9 +18,12 @@ class User(SqlAlchemyBase):
     for_people = sqlalchemy.Column(sqlalchemy.String)
     # for_interests = sqlalchemy.Column(sqlalchemy.String)
     # TODO
+    roles = orm.relationship("Role", back_populates="user")
+    my_like = orm.relationship("Like", back_populates="from_user", primaryjoin="User.id==Like.from_user_id")
+    like_me = orm.relationship("Like", back_populates="to_user", primaryjoin="User.id==Like.to_user_id")
+    warns = sqlalchemy.Column(sqlalchemy.Integer, default=0, server_default="0")
     is_muted_for_people = sqlalchemy.Column(sqlalchemy.Boolean, default=False, server_default="0")
     # is_muted_for_interests = sqlalchemy.Column(sqlalchemy.Boolean, default=False, server_default="0")
     reports_for_people = None
     # reports_for_interests = None
     # END
-    roles = orm.relationship("Role", back_populates="user")
