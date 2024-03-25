@@ -113,7 +113,7 @@ class Korabelchik:
         return command[1]
 
     def run(self):
-        db_session.global_init("../../db/korabelchik.sqlite")
+        db_session.global_init("../../db/korabelchik_bu4.sqlite")
         for event in self.longpoll.listen():
             if event.type == VkEventType.MESSAGE_NEW and event.to_me:
                 # TODO: commands

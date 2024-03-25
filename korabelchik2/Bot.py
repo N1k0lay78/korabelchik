@@ -3,7 +3,7 @@ from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.utils import get_random_id
 
 from config import command_prefix
-from controller.user import get_user_page, get_roles
+from controller.user import get_user_page, get_roles, signin_user
 from data import db_session
 
 import requests
@@ -34,9 +34,9 @@ class Bot:
         try:
             for event in self.__long_poll.listen():
                 if event.type == VkEventType.MESSAGE_NEW and event.to_me:
+                    signin_user(event.user_id)
                     # check command
-                    if event.message.startswith(command_prefix) or self.is_button_pressed(event):
-                        self.run_command(event)
+                    self.run_command(event)
                     # check message
                     # return page
         except ReadTimeout:
@@ -56,9 +56,19 @@ class Bot:
         return None
 
     def run_command(self, event):
+        # press button
+        if self.is_button_pressed(event):
+            type_command = 0
+        # classic command with /
+        elif event.message and event.message.split()[0].startswith(command_prefix):
+            type_command = 1
+        # write text on page
+        else:
+            type_command = 2
         for command in self.__commands:
-            if command.is_command(event):
-                command.run_command(event)
+            if command.is_command(event, type_command=type_command):
+                command.run_command(event, type_command=type_command)
+                break
 
     # --- buttons ---
     def is_button_pressed(self, event):
@@ -96,3 +106,10 @@ class Bot:
 
     def mark_as_read(self, event):
         self.__vk.messages.markAsRead(user_id=event.user_id, mark_conversation_as_read=True)
+
+    def save_image(self, raw):
+        # image = self.__session.get(f'photo{attach}', stream=True)
+        owner, ID = map(int, raw.split())
+        self.__vk.photos.get(owner_id=owner, )
+        photo = self.__upload.photo_messages(photos=raw[-2])
+        print(photo[0])

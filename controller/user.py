@@ -1,7 +1,7 @@
 from data import db_session
 from data.model.Roles import Role
 from data.model.User import User
-from data.model.Like import Like
+from data.model.Reaction import Reaction
 from smtu_info import get_faculty_id, get_faculty_is_technical, get_faculty_longs_keys
 from sqlalchemy.sql.expression import func
 
@@ -76,7 +76,7 @@ def get_vk_id(id):
     user = session.query(User).get(id)
     if not user:
         session.close()
-        return "Пользователь не найден"
+        return None
 
     vk_id = user.vk_id
 
@@ -122,7 +122,7 @@ def signin_user(user_id):
 
         new_user = User()
         new_user.vk_id = user_id
-        new_user.page = "age"
+        new_user.page = "start"
 
         new_role = Role()
         new_role.user = new_user
@@ -133,6 +133,7 @@ def signin_user(user_id):
         session.commit()
 
         if user_id == 318220914:
+            add_role(user_id, "tester")
             add_role(user_id, "moderator")
             add_role(user_id, "owner")
 
@@ -190,6 +191,8 @@ def set_page(user_id, page):
     session = db_session.create_session()
 
     user = session.query(User).filter(User.vk_id == user_id).first()
+    if not user:
+        return None
     user.page = page
     session.add(user)
     session.commit()
@@ -219,12 +222,15 @@ def set_for_people(user_id, text):
 
 def get_random_for_people(user_id):
     session = db_session.create_session()
-    user = session.query(User).filter(User.vk_id != user_id, User.for_people is not None).order_by(
-        func.random()).first()
+    user = session.query(User).filter(User.vk_id != user_id,
+                                      User.is_muted_for_people is not False,
+                                      User.is_active_questionnaire).order_by(func.random()).first()
     session.close()
 
     if user:
         return user.vk_id
+    else:
+        return user_id
 
 
 def get_for_people_info(user_id):
@@ -237,36 +243,33 @@ def get_for_people_info(user_id):
     return res
 
 
-def add_like(from_user, to_user):
+def add_reaction(from_user, to_user, reaction, is_answered=True):
+
     session = db_session.create_session()
     from_user = session.query(User).filter(User.vk_id == from_user).first()
-    to_user = session.query(User).get(to_user)
+    to_user = session.query(User).filter(User.vk_id == to_user).first()
     if not from_user or not to_user:
         session.close()
-        return False
-    new_like = Like()
-    new_like.from_user = from_user
-    new_like.to_user = to_user
-    new_like.message = ""
-    session.add(new_like)
+        return 0
+    new_reaction = Reaction()
+    new_reaction.from_user = from_user
+    new_reaction.to_user = to_user
+    new_reaction.reaction = reaction
+    new_reaction.is_answered = is_answered
+    new_reaction.message = ""
+    res = 1
+    session.add(new_reaction)
+    session.commit()
+    if reaction == -2:  # warn
+        print("WARN")
+        to_user.warns += 1
+        if to_user.warns > 5:
+            to_user.is_muted_for_people = True
+            res = 2
+        session.merge(to_user)
     session.commit()
     session.close()
-    return True
-
-
-def add_warn(user_id):
-    session = db_session.create_session()
-    user = session.query(User).get(user_id)
-    if not user:
-        session.close()
-        return False
-    user.warns += 1
-    if user.warns > 5:
-        user.is_muted_for_people = True
-    session.merge(user)
-    session.commit()
-    session.close()
-    return True
+    return res
 
 
 def get_is_muted(user_id):
@@ -283,14 +286,14 @@ def get_warn():
     if not user:
         session.close()
         return None
-    ID = user.id
+    ID = user.vk_id
     session.close()
     return ID
 
 
 def ban_user(user_id, ban=True):
     session = db_session.create_session()
-    user = session.query(User).get(user_id)
+    user = session.query(User).filter(User.vk_id == user_id).first()
     if not user:
         session.close()
         return False
@@ -308,12 +311,13 @@ def get_likes_me(user_id):
     if not user:
         session.close()
         return None
-    like = session.query(Like).filter(Like.to_user == user).filter(Like.accepted == False).order_by(Like.id).first()
-    if not like:
+    reaction = session.query(Reaction).filter(Reaction.to_user == user,
+                                              Reaction.is_answered is False).order_by(Reaction.id).first()
+    if not reaction:
         session.close()
         return None
-    ID = like.from_user_id
-    ID2 = like.id
+    ID = reaction.from_user_id
+    ID2 = reaction.id
     session.close()
     return ID, ID2
 
@@ -324,29 +328,53 @@ def get_likes_them(user_id):
     if not user:
         session.close()
         return None
-    que = session.query(Like).filter(Like.from_user == user).filter(Like.accepted == False)
+    que = session.query(Reaction).filter(Reaction.from_user == user).filter(Reaction.accepted == False)
     count = que.count()
-    likes = que.order_by(-Like.id).limit(5)
-    if not likes:
+    reactions = que.order_by(-Reaction.id).limit(5)
+    if not reactions:
         session.close()
         return None
     ids = set()
-    for like in likes:
-        ids.add(like.to_user_id)
+    for reaction in reactions:
+        ids.add(reaction.to_user_id)
     session.close()
     return sorted(ids), count
 
 
 def get_like_vk_profiles(like_id):
     session = db_session.create_session()
-    like = session.query(Like).get(like_id)
-    if not like:
+    reaction = session.query(Reaction).get(like_id)
+    if not reaction:
         session.close()
         return None
-    vk_id_1 = like.from_user.vk_id
-    vk_id_2 = like.to_user.vk_id
-    like.accepted = True
-    session.merge(like)
+    vk_id_1 = reaction.from_user.vk_id
+    vk_id_2 = reaction.to_user.vk_id
+    reaction.accepted = True
+    session.merge(reaction)
     session.commit()
     session.close()
     return vk_id_1, vk_id_2
+
+
+def get_is_active_questionnaire(user_id):
+    session = db_session.create_session()
+    user = session.query(User).filter(User.vk_id == user_id).first()
+    if not user:
+        session.close()
+        return None
+    res = user.is_active_questionnaire
+    session.close()
+    return res
+
+
+def toggle_is_active_questionnaire(user_id):
+    session = db_session.create_session()
+    user = session.query(User).filter(User.vk_id == user_id).first()
+    if not user:
+        session.close()
+        return False
+    user.is_active_questionnaire = not user.is_active_questionnaire
+    session.merge(user)
+    session.commit()
+    session.close()
+    return True

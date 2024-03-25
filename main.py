@@ -9,7 +9,7 @@ from controller.user import is_user_authenticated, signin_user, get_user_page, s
 from data import db_session
 from tools import is_button_pressed, get_command
 
-db_session.global_init("db/korabelchik.sqlite")
+db_session.global_init("db/korabelchik_bu4.sqlite")
 
 vk_session = vk_api.VkApi(token=token)
 longpoll = VkLongPoll(vk_session)
