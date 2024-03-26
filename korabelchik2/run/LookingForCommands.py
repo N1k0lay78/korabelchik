@@ -5,22 +5,6 @@ from korabelchik2.Command import Command
 from korabelchik2.tools import *
 
 
-class LikesMeCommand(Command):
-    def __init__(self, bot):
-        super().__init__("likes_me", bot)
-
-    def function(self, params, event):
-        if validation_role(self.bot, event, ["owner", "tester"]):
-            data = get_likes_me(event.user_id)
-            if data:
-                ID, ID2 = data
-                com = self.bot.get_command("get_user")
-                com.function(str(ID), event)
-                self.bot.send_message(event.user_id, f"LikeID: {ID2}\n")
-            else:
-                self.bot.send_message(event.user_id, "Нет анкет ожидающих ответа")
-
-
 class LikesThemCommand(Command):
     def __init__(self, bot):
         super().__init__("likes_them", bot)
@@ -37,21 +21,6 @@ class LikesThemCommand(Command):
                     com.function(str(ID), event)
             else:
                 self.bot.send_message(event.user_id, "Нет анкет ожидающих ответа")
-
-
-class AcceptCommand(Command):
-    def __init__(self, bot):
-        super().__init__("accept", bot)
-
-    def function(self, params, event):
-        if validation_role(self.bot, event, ["owner", "tester"]) and validation_int(self.bot, event, params):
-            data = get_like_vk_profiles(int(params[0]))
-            if data:
-                vk_id_1, vk_id_2 = data
-                self.bot.send_message(vk_id_1, f"Пользователь @id{vk_id_2} принял вашу заявку")
-                self.bot.send_message(vk_id_2, f"Пользователь @id{vk_id_1} принял вашу заявку")
-            else:
-                self.bot.send_message("Реакция не найдена")
 
 
 class ReactionCommand(Command):
@@ -89,10 +58,11 @@ class GetUserCommand(Command):
                 self.bot.send_message(event.user_id, "Пользователь не найден")
                 return None
             img, name, _surname = self.bot.get_vk_info(user_id)
+            print(img)
             text, fac, age, gender = get_for_people_info(user_id)
             # работает - не трогай, checked by rjkzavr at 1-100 yo
             yo = ("год" if age % 10 == 1 else "года") if (5 > age % 10 > 0) and age // 10 != 1 else "лет"
-            if "keyboard" in params:
+            if "keyboard" in params:  # looking for
                 keyboard = VkKeyboard(one_time=True)
                 keyboard.add_button("👎", VkKeyboardColor.PRIMARY, {"command": "reaction -1"})
                 keyboard.add_button("🚨", VkKeyboardColor.SECONDARY, {"command": "reaction -2"})
@@ -104,11 +74,18 @@ class GetUserCommand(Command):
                     keyboard.add_button("БАН", VkKeyboardColor.NEGATIVE, {"command": "edit"})
                 self.bot.send_message(event.user_id, f"{name}, {age} {yo}\n{fac}\nПол: {gender}\nО себе:\n{text}",
                                       attachment=img, keyboard=keyboard.get_keyboard())
-            elif "keyboard2" in params:
+            elif "keyboard2" in params:  # moderation
                 keyboard = VkKeyboard(one_time=True)
                 keyboard.add_button("забанить", VkKeyboardColor.NEGATIVE, {"command": f"ban {user_id}"})
                 keyboard.add_button("разбанить", VkKeyboardColor.POSITIVE, {"command": f"unban {user_id}"})
                 keyboard.add_line()
+                keyboard.add_button("на главную", VkKeyboardColor.PRIMARY, {"command": "main"})
+                self.bot.send_message(event.user_id, f"{name}, {age} {yo}\n{fac}\nПол: {gender}\nО себе:\n{text}",
+                                      attachment=img, keyboard=keyboard.get_keyboard())
+            elif "keyboard3" in params:  # likes
+                keyboard = VkKeyboard(one_time=True)
+                keyboard.add_button("👋", VkKeyboardColor.POSITIVE, {"command": f"accept 1"})
+                keyboard.add_button("👎", VkKeyboardColor.NEGATIVE, {"command": f"accept 0"})
                 keyboard.add_button("на главную", VkKeyboardColor.PRIMARY, {"command": "main"})
                 self.bot.send_message(event.user_id, f"{name}, {age} {yo}\n{fac}\nПол: {gender}\nО себе:\n{text}",
                                       attachment=img, keyboard=keyboard.get_keyboard())
@@ -139,3 +116,37 @@ class LookingForCommand(Command):
             return
         set_page(event.user_id, f"looking_for {look_id}")
         self.bot.get_command("get_user").function([str(look_id), "keyboard"], event)
+
+
+class LikesMeCommand(Command):
+    def __init__(self, bot):
+        super().__init__("likes_me", bot)
+
+    def function(self, params, event):
+        if validation_role(self.bot, event, ["owner", "tester"]):
+            data = get_likes_me(event.user_id)
+            if data:
+                user_id, reaction_id = data
+                set_page(event.user_id, f"likes_me {reaction_id}")
+                com = self.bot.get_command("get_user")
+                com.function([str(user_id), "keyboard3"], event)
+                # self.bot.send_message(event.user_id, f"LikeID: {ID2}\n")
+            else:
+                self.bot.send_message(event.user_id, "Нет анкет ожидающих ответа")
+
+
+class AcceptCommand(Command):
+    def __init__(self, bot):
+        super().__init__("accept", bot)
+
+    def function(self, params, event):
+        if validation_int(self.bot, event, params) and validate_page_id(self.bot, event, "likes_me"):
+            reaction_id = get_user_page(event.user_id).split()[1]
+            reaction = int(params[0])
+            data = get_like_vk_profiles(reaction_id, event.user_id)
+            if data and reaction:
+                vk_id_1, vk_id_2 = data
+                self.bot.send_message(vk_id_1, f"Пользователь @id{vk_id_2} принял вашу заявку")
+                self.bot.send_message(vk_id_2, f"Пользователь @id{vk_id_1} принял вашу заявку")
+            else:
+                self.bot.send_message("Реакция не найдена")

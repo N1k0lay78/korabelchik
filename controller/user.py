@@ -341,15 +341,18 @@ def get_likes_them(user_id):
     return sorted(ids), count
 
 
-def get_like_vk_profiles(like_id):
+def get_like_vk_profiles(like_id, vk_id):
     session = db_session.create_session()
     reaction = session.query(Reaction).get(like_id)
     if not reaction:
         session.close()
         return None
+    if reaction.from_user.vk_id != vk_id:
+        session.close()
+        return None
     vk_id_1 = reaction.from_user.vk_id
     vk_id_2 = reaction.to_user.vk_id
-    reaction.accepted = True
+    reaction.is_answered = True
     session.merge(reaction)
     session.commit()
     session.close()
