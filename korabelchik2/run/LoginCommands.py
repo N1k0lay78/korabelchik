@@ -15,6 +15,9 @@ class StartCommand(Command):
 
     def function(self, params, event):
         self.bot.send_message(event.user_id, f"Привет, это бот тестовичок!\nЯ работаю в тестовом режиме, все ваши данные могут быть просмотренны.")
+
+        self.bot.save_image(event.user_id)
+
         com = self.bot.get_command("ask_age")
         com.function(["set"], event)
 

@@ -153,12 +153,38 @@ def get_user_page(user_id):
     return user.page
 
 
+def set_user_image(vk_id, image):
+    session = db_session.create_session()
+
+    user = session.query(User).filter(User.vk_id == vk_id).first()
+    if not user:
+        session.close()
+        return False
+    user.photo = image
+    session.merge(user)
+    session.commit()
+
+    session.close()
+    return True
+
+
+def get_user_image(vk_id):
+    session = db_session.create_session()
+
+    user = session.query(User).filter(User.vk_id == vk_id).first()
+    if not user:
+        session.close()
+        return None
+    session.close()
+    return user.photo
+
+
 def set_user_age(user_id, age):
     session = db_session.create_session()
 
     user = session.query(User).filter(User.vk_id == user_id).first()
     user.age = int(age)
-    session.add(user)
+    session.merge(user)
     session.commit()
 
     session.close()
@@ -169,7 +195,7 @@ def set_user_gender(user_id, male):
 
     user = session.query(User).filter(User.vk_id == user_id).first()
     user.is_male = male == "male"
-    session.add(user)
+    session.merge(user)
     session.commit()
 
     session.close()
@@ -181,7 +207,7 @@ def set_user_faculty(user_id, faculty):
     user = session.query(User).filter(User.vk_id == user_id).first()
     user.faculty_id = get_faculty_id(faculty)
     user.is_technical = get_faculty_is_technical(faculty)
-    session.add(user)
+    session.merge(user)
     session.commit()
 
     session.close()
@@ -194,7 +220,7 @@ def set_page(user_id, page):
     if not user:
         return None
     user.page = page
-    session.add(user)
+    session.merge(user)
     session.commit()
 
     session.close()
@@ -214,7 +240,7 @@ def set_for_people(user_id, text):
 
     user = session.query(User).filter(User.vk_id == user_id).first()
     user.for_people = text
-    session.add(user)
+    session.merge(user)
     session.commit()
 
     session.close()
@@ -235,11 +261,13 @@ def get_random_for_people(user_id):
 
 def get_for_people_info(user_id):
     session = db_session.create_session()
-    # user = session.query(User).filter(User.vk_id != user_id, User.for_people is not None).order_by(func.random()).first()
+    print(user_id)
     user = session.query(User).filter(User.vk_id == user_id).first()
+    if not user:
+        session.close()
+        return None
     res = user.for_people, get_faculty_longs_keys(user.faculty_id), user.age, "мужской" if user.is_male else "женский"
     session.close()
-
     return res
 
 
@@ -305,18 +333,39 @@ def ban_user(user_id, ban=True):
     return True
 
 
+def get_reaction_statistic(vk_id):
+    session = db_session.create_session()
+    user = session.query(User).filter(User.vk_id == vk_id).first()
+    if not user:
+        session.close()
+        return None
+    count_likes_me = session.query(Reaction).filter(Reaction.to_user == user,
+                                                    Reaction.reaction == 1,
+                                                    Reaction.is_answered == False).count()
+    count_likes_them = session.query(Reaction).filter(Reaction.from_user == user,
+                                                      Reaction.reaction == 1,
+                                                      Reaction.is_answered == False).count()
+    session.close()
+    return count_likes_me, count_likes_them
+
+
 def get_likes_me(user_id):
     session = db_session.create_session()
     user = session.query(User).filter(User.vk_id == user_id).first()
     if not user:
+        print("NO USER")
         session.close()
         return None
     reaction = session.query(Reaction).filter(Reaction.to_user == user,
-                                              Reaction.is_answered is False).order_by(Reaction.id).first()
+                                               Reaction.reaction == 1,
+                                               Reaction.is_answered == False).order_by(Reaction.id).first()
+    # print(*list(map(lambda x: x.id, reactions)))
+    # reaction = reactions[0]
     if not reaction:
         session.close()
+        print("NO REACTION")
         return None
-    ID = reaction.from_user_id
+    ID = reaction.from_user.vk_id
     ID2 = reaction.id
     session.close()
     return ID, ID2
@@ -328,17 +377,17 @@ def get_likes_them(user_id):
     if not user:
         session.close()
         return None
-    que = session.query(Reaction).filter(Reaction.from_user == user).filter(Reaction.accepted == False)
-    count = que.count()
-    reactions = que.order_by(-Reaction.id).limit(5)
+    reactions = session.query(Reaction).filter(Reaction.from_user == user,
+                                               Reaction.reaction == 1,
+                                               Reaction.is_answered == False).order_by(-Reaction.id).limit(5)
     if not reactions:
         session.close()
         return None
     ids = set()
     for reaction in reactions:
-        ids.add(reaction.to_user_id)
+        ids.add(reaction.to_user.vk_id)
     session.close()
-    return sorted(ids), count
+    return sorted(ids)
 
 
 def get_like_vk_profiles(like_id, vk_id):
@@ -353,6 +402,7 @@ def get_like_vk_profiles(like_id, vk_id):
     vk_id_1 = reaction.from_user.vk_id
     vk_id_2 = reaction.to_user.vk_id
     reaction.is_answered = True
+    print(like_id)
     session.merge(reaction)
     session.commit()
     session.close()

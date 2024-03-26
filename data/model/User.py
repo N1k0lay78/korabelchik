@@ -11,6 +11,7 @@ class User(SqlAlchemyBase):
     time_created = sqlalchemy.Column(sqlalchemy.DateTime(timezone=True), server_default=func.now())
     vk_id = sqlalchemy.Column(sqlalchemy.Integer, unique=True)
     page = sqlalchemy.Column(sqlalchemy.String, nullable=False)
+    photo = sqlalchemy.Column(sqlalchemy.String)
     age = sqlalchemy.Column(sqlalchemy.Integer)
     is_male = sqlalchemy.Column(sqlalchemy.Boolean)
     # TODO: добавить факультеты в БД

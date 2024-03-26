@@ -11,16 +11,40 @@ class MainPageCommand(Command):
 
     def function(self, params, event):
         set_page(event.user_id, "main")
-        roles = get_roles(event.user_id)
+        # roles = get_roles(event.user_id)
         keyboard = VkKeyboard(one_time=True)
-        keyboard.add_button("Искать людей", VkKeyboardColor.PRIMARY, {"command": "looking_for"})
-        if "moderator" in roles:
-            keyboard.add_line()
-            keyboard.add_button("Модерация", VkKeyboardColor.SECONDARY, {"command": "warns"})
+        keyboard.add_button("Поиск людей", VkKeyboardColor.PRIMARY, {"command": "looking_for_page"})
+        # if "moderator" in roles:
+        #     keyboard.add_line()
+        #     keyboard.add_button("Модерация", VkKeyboardColor.SECONDARY, {"command": "warns"})
         keyboard.add_line()
         keyboard.add_button("Профиль", VkKeyboardColor.SECONDARY, {"command": "profile"})
 
         self.bot.send_message(event.user_id, f"Главное меню", keyboard=keyboard.get_keyboard())
+
+
+class LookingForPageCommand(Command):
+    def __init__(self, bot):
+        super().__init__("looking_for_page", bot)
+
+    def function(self, params, event):
+        set_page(event.user_id, "looking_for_page")
+        roles = get_roles(event.user_id)
+        c_like_me, c_like_them = get_reaction_statistic(event.user_id)
+        keyboard = VkKeyboard(one_time=True)
+        keyboard.add_button("Искать людей", VkKeyboardColor.PRIMARY, {"command": "looking_for"})
+        keyboard.add_line()
+        keyboard.add_button(f"Кому интересна анкета ({min(99, c_like_me)})", VkKeyboardColor.PRIMARY,
+                            {"command": "likes_me"})
+        keyboard.add_line()
+        keyboard.add_button(f"Чьи анкеты интересны ({min(99, c_like_them)})", VkKeyboardColor.PRIMARY,
+                            {"command": "likes_them"})
+        keyboard.add_line()
+        if "moderator" in roles:
+            keyboard.add_button("Модерация", VkKeyboardColor.SECONDARY, {"command": "warns"})
+        keyboard.add_button("Главное меню", VkKeyboardColor.SECONDARY, {"command": "main"})
+
+        self.bot.send_message(event.user_id, f"Поиск людей", keyboard=keyboard.get_keyboard())
 
 
 class ProfilePageCommand(Command):

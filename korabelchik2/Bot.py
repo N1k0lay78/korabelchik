@@ -3,7 +3,7 @@ from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.utils import get_random_id
 
 from config import command_prefix
-from controller.user import get_user_page, get_roles, signin_user
+from controller.user import get_user_page, get_roles, signin_user, set_user_image
 from data import db_session
 
 import requests
@@ -87,17 +87,24 @@ class Bot:
         data = self.__vk.users.get(user_id=user_id, fields="crop_photo")
         if data:
             data = data[0]
-            return data['crop_photo']["photo"]["sizes"][-1]["url"], data["first_name"], data["last_name"]
+            return data["first_name"], data["last_name"]
+        return None
+
+    def get_vk_image_href(self, vk_id):
+        data = self.__vk.users.get(user_id=vk_id, fields="crop_photo")
+        if data:
+            return data[0]['crop_photo']["photo"]["sizes"][-1]["url"]
         return None
 
     # --- send ---
     def __send(self, user_id, data):
         data["random_id"] = get_random_id()
         # отправка фотографии
-        if "attachment" in data:
-            image = self.__session.get(data["attachment"], stream=True)
-            photo = self.__upload.photo_messages(photos=image.raw)[0]
-            data["attachment"] = 'photo{}_{}'.format(photo['owner_id'], photo['id'])
+        # if "attachment" in data:
+        #     image = self.__session.get(data["attachment"], stream=True)
+        #     # print(image.raw)
+        #     photo = self.__upload.photo_messages(photos=image.raw)[0]
+        #     data["attachment"] = 'photo{}_{}'.format(photo['owner_id'], photo['id'])
         self.__vk.messages.send(user_id=user_id, **data)
 
     def send_message(self, user_id, message, **kwargs):
@@ -107,9 +114,8 @@ class Bot:
     def mark_as_read(self, event):
         self.__vk.messages.markAsRead(user_id=event.user_id, mark_conversation_as_read=True)
 
-    def save_image(self, raw):
-        # image = self.__session.get(f'photo{attach}', stream=True)
-        owner, ID = map(int, raw.split())
-        self.__vk.photos.get(owner_id=owner, )
-        photo = self.__upload.photo_messages(photos=raw[-2])
-        print(photo[0])
+    def save_image(self, vk_id):
+        img_href = self.get_vk_image_href(vk_id)
+        image = self.__session.get(img_href, stream=True)
+        photo = self.__upload.photo_messages(photos=image.raw)[0]
+        set_user_image(vk_id, 'photo{}_{}'.format(photo['owner_id'], photo['id']))

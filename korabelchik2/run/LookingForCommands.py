@@ -10,17 +10,14 @@ class LikesThemCommand(Command):
         super().__init__("likes_them", bot)
 
     def function(self, params, event):
-        if validation_role(self.bot, event, ["owner", "tester"]):
-            data = get_likes_them(event.user_id)
-            if data:
-                ids, count = data
-                self.bot.send_message(event.user_id, f"Ожидают ответа {count}")
-                print(ids)
-                for ID in ids:
-                    com = self.bot.get_command("get_user")
-                    com.function(str(ID), event)
-            else:
-                self.bot.send_message(event.user_id, "Нет анкет ожидающих ответа")
+        ids = get_likes_them(event.user_id)
+        if ids is not None:
+            for ID in ids:
+                self.bot.get_command("get_user").function([str(ID)], event)
+            self.bot.get_command("looking_for_page").function([], event)
+        else:
+            self.bot.send_message(event.user_id, "Нет анкет ожидающих ответа")
+            self.bot.get_command("looking_for_page").function([], event)
 
 
 class ReactionCommand(Command):
@@ -54,12 +51,28 @@ class GetUserCommand(Command):
     def function(self, params, event):
         if validation_int(self.bot, event, params):
             user_id = int(params[0])
+            print(user_id)
             if not user_id:
-                self.bot.send_message(event.user_id, "Пользователь не найден")
+                self.bot.send_message(event.user_id, "Пользователь не указан")
+                self.bot.get_command("main").function([], event)
                 return None
-            img, name, _surname = self.bot.get_vk_info(user_id)
-            print(img)
-            text, fac, age, gender = get_for_people_info(user_id)
+            data1 = self.bot.get_vk_info(user_id)
+            if data1 is None:
+                self.bot.send_message(event.user_id, "Не удалось загрузить информацию о пользователе")
+                self.bot.get_command("main").function([], event)
+                return None
+            name, _surname = data1
+            img = get_user_image(user_id)
+            if img is None:
+                self.bot.send_message(event.user_id, "Не удалось найти изображение пользователя")
+                self.bot.get_command("main").function([], event)
+                return None
+            data2 = get_for_people_info(user_id)
+            if data2 is None:
+                self.bot.send_message(event.user_id, "Не удалось найти информацию пользователе")
+                self.bot.get_command("main").function([], event)
+                return None
+            text, fac, age, gender = data2
             # работает - не трогай, checked by rjkzavr at 1-100 yo
             yo = ("год" if age % 10 == 1 else "года") if (5 > age % 10 > 0) and age // 10 != 1 else "лет"
             if "keyboard" in params:  # looking for
@@ -128,11 +141,11 @@ class LikesMeCommand(Command):
             if data:
                 user_id, reaction_id = data
                 set_page(event.user_id, f"likes_me {reaction_id}")
-                com = self.bot.get_command("get_user")
-                com.function([str(user_id), "keyboard3"], event)
+                self.bot.get_command("get_user").function([str(user_id), "keyboard3"], event)
                 # self.bot.send_message(event.user_id, f"LikeID: {ID2}\n")
             else:
                 self.bot.send_message(event.user_id, "Нет анкет ожидающих ответа")
+                self.bot.get_command("looking_for_page").function([], event)
 
 
 class AcceptCommand(Command):
@@ -144,9 +157,14 @@ class AcceptCommand(Command):
             reaction_id = get_user_page(event.user_id).split()[1]
             reaction = int(params[0])
             data = get_like_vk_profiles(reaction_id, event.user_id)
-            if data and reaction:
+            # print(data, reaction)
+            if data and reaction:  # like
                 vk_id_1, vk_id_2 = data
                 self.bot.send_message(vk_id_1, f"Пользователь @id{vk_id_2} принял вашу заявку")
                 self.bot.send_message(vk_id_2, f"Пользователь @id{vk_id_1} принял вашу заявку")
+                self.bot.get_command("likes_me").function([], event)
+            elif data:  # dont like
+                self.bot.get_command("likes_me").function([], event)
             else:
-                self.bot.send_message("Реакция не найдена")
+                self.bot.send_message(event.user_id, "Реакция не найдена")
+                self.bot.get_command("looking_for_page").function([], event)

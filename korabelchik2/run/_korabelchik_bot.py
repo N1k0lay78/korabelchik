@@ -51,7 +51,7 @@ def run():
     bot.add_command(ToggleQuestionnaireCommand(bot))
     bot.add_command(ViewMyCommand(bot))
     bot.add_command(LookingForCommand(bot))
-    bot.add_command(LookingForCommand(bot))
+    bot.add_command(LookingForPageCommand(bot))
 
     # ===== NEED TO DO ====
 

@@ -52,7 +52,7 @@ class DinoCommand(Command):
 
     def function(self, params, event):
         roles = self.bot.get_roles(event.user_id)
-        self.bot.send_message(event.user_id, f"Динозавр выглядит так:", attachment="photo318220914_1711374849")
+        self.bot.send_message(event.user_id, f"Динозавр выглядит так:", attachment="photo-222863001_457239159")
 
 
 class PageCommand(Command):
