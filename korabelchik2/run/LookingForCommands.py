@@ -141,16 +141,15 @@ class LikesMeCommand(Command):
         super().__init__("likes_me", bot)
 
     def function(self, params, event):
-        if validation_role(self.bot, event, ["owner", "tester"]):
-            data = get_likes_me(event.user_id)
-            if data:
-                user_id, reaction_id = data
-                set_page(event.user_id, f"likes_me {reaction_id}")
-                self.bot.get_command("get_user").function([str(user_id), "keyboard3"], event)
-                # self.bot.send_message(event.user_id, f"LikeID: {ID2}\n")
-            else:
-                self.bot.send_message(event.user_id, "Нет анкет ожидающих ответа")
-                self.bot.get_command("looking_for_page").function([], event)
+        data = get_likes_me(event.user_id)
+        if data:
+            user_id, reaction_id = data
+            set_page(event.user_id, f"likes_me {reaction_id}")
+            self.bot.get_command("get_user").function([str(user_id), "keyboard3"], event)
+            # self.bot.send_message(event.user_id, f"LikeID: {ID2}\n")
+        else:
+            self.bot.send_message(event.user_id, "Нет анкет ожидающих ответа")
+            self.bot.get_command("looking_for_page").function([], event)
 
 
 class AcceptCommand(Command):
