@@ -51,7 +51,6 @@ class GetUserCommand(Command):
     def function(self, params, event):
         if validation_int(self.bot, event, params):
             user_id = int(params[0])
-            print(user_id)
             if not user_id:
                 self.bot.send_message(event.user_id, "Пользователь не указан")
                 self.bot.get_command("main").function([], event)
@@ -160,7 +159,6 @@ class AcceptCommand(Command):
             reaction_id = get_user_page(event.user_id).split()[1]
             reaction = int(params[0])
             data = get_like_vk_profiles(reaction_id, event.user_id)
-            # print(data, reaction)
             if data and reaction:  # like
                 vk_id_1, vk_id_2 = data
                 self.bot.send_message(vk_id_1, f"Пользователь @id{vk_id_2} принял вашу заявку")

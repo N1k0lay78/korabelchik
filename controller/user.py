@@ -261,7 +261,6 @@ def get_random_for_people(user_id):
 
 def get_for_people_info(user_id):
     session = db_session.create_session()
-    print(user_id)
     user = session.query(User).filter(User.vk_id == user_id).first()
     if not user:
         session.close()
@@ -289,7 +288,6 @@ def add_reaction(from_user, to_user, reaction, is_answered=True):
     session.add(new_reaction)
     session.commit()
     if reaction == -2:  # warn
-        print("WARN")
         to_user.warns += 1
         if to_user.warns > 5:
             to_user.is_muted_for_people = True
@@ -353,17 +351,14 @@ def get_likes_me(user_id):
     session = db_session.create_session()
     user = session.query(User).filter(User.vk_id == user_id).first()
     if not user:
-        print("NO USER")
         session.close()
         return None
     reaction = session.query(Reaction).filter(Reaction.to_user == user,
                                                Reaction.reaction == 1,
                                                Reaction.is_answered == False).order_by(Reaction.id).first()
-    # print(*list(map(lambda x: x.id, reactions)))
     # reaction = reactions[0]
     if not reaction:
         session.close()
-        print("NO REACTION")
         return None
     ID = reaction.from_user.vk_id
     ID2 = reaction.id
@@ -402,7 +397,6 @@ def get_like_vk_profiles(like_id, vk_id):
     vk_id_1 = reaction.from_user.vk_id
     vk_id_2 = reaction.to_user.vk_id
     reaction.is_answered = True
-    print(like_id)
     session.merge(reaction)
     session.commit()
     session.close()

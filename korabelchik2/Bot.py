@@ -99,12 +99,6 @@ class Bot:
     # --- send ---
     def __send(self, user_id, data):
         data["random_id"] = get_random_id()
-        # отправка фотографии
-        # if "attachment" in data:
-        #     image = self.__session.get(data["attachment"], stream=True)
-        #     # print(image.raw)
-        #     photo = self.__upload.photo_messages(photos=image.raw)[0]
-        #     data["attachment"] = 'photo{}_{}'.format(photo['owner_id'], photo['id'])
         self.__vk.messages.send(user_id=user_id, **data)
 
     def send_message(self, user_id, message, **kwargs):

@@ -47,11 +47,8 @@ class SetProfileInfoCommand(Command):
         super().__init__("set_profile_info", bot)
 
     def function(self, params, event):
-        print(validation_str(self.bot, event, params), params)
         if validate_page(self.bot, event, "set_profile_info", ["update", "set"]) and validation_str(self.bot, event, params):
-            print(params)
             if params[0] == "True":
-                print(self.bot.get_vk_info(event.user_id))
             self.bot.mark_as_read(event)
             if get_user_page(event.user_id).split()[1] == "update":
                 set_page(event.user_id, "main")
@@ -231,7 +228,6 @@ class SetImageCommand(Command):
 
     def function(self, params, event):
         if validate_page(self.bot, event, "set_image", ["update", "set"]):
-            # print(event.raw[-2], event.random_id, sep='\n')
             if "attach1" in event.attachments and event.raw[-2][f"attach1_type"] == "photo":
                 self.bot.save_image(event.raw[-2]["attach1"])  # 318220914_457245392
 
