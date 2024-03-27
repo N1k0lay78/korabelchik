@@ -362,6 +362,7 @@ def get_reaction_statistic(vk_id):
     for like_them in likes_them:
         users_likes_them.add(like_them.to_user.id)
     count_likes_them = len(users_likes_me)
+    print(users_likes_me, users_likes_them)
     session.close()
     return count_likes_me, count_likes_them
 
