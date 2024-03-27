@@ -350,10 +350,10 @@ def get_reaction_statistic(vk_id):
         return None
     likes_me = session.query(Reaction).filter(Reaction.to_user == user,
                                                     Reaction.reaction == 1,
-                                                    Reaction.is_answered == False).count()
+                                                    Reaction.is_answered == False).all()
     likes_them = session.query(Reaction).filter(Reaction.from_user == user,
                                                       Reaction.reaction == 1,
-                                                      Reaction.is_answered == False).count()
+                                                      Reaction.is_answered == False).all()
     users_likes_me = set()
     for like_me in likes_me:
         users_likes_me.add(like_me.from_user.id)
