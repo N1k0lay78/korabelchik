@@ -21,6 +21,15 @@ class StartCommand(Command):
         com = self.bot.get_command("ask_age")
         com.function(["set"], event)
 
+
+class EndRegistrationCommand(Command):
+    def __init__(self, bot):
+        super().__init__("end_registration", bot)
+
+    def function(self, params, event):
+        set_user_is_registered(event.user_id)
+
+
 """
 Можно получить только пол пользователя - такое себе
 https://dev.vk.com/ru/method/account.getProfileInfo
@@ -88,8 +97,7 @@ class SetAgeCommand(Command):
             if get_user_page(event.user_id).split()[1] == "update":
                 self.bot.get_command("edit").function([], event)
             else:
-                com = self.bot.get_command("ask_gender")
-                com.function(["set"], event)
+                self.bot.get_command("ask_gender").function(["set"], event)
 
 
 # gender
@@ -203,8 +211,8 @@ class SetAboutTextCommand(Command):
             if get_user_page(event.user_id).split()[1] == "update":
                 self.bot.get_command("edit").function([], event)
             else:
-                com = self.bot.get_command("main")
-                com.function([], event)
+                self.bot.get_command("end_registration").function([], event)
+                self.bot.get_command("main").function([], event)
 
 
 """# image

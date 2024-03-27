@@ -18,7 +18,6 @@ class WarnsCommand(Command):
                 self.bot.get_command("main").function([], event)
 
 
-
 class BanCommand(Command):
     def __init__(self, bot):
         super().__init__("ban", bot)

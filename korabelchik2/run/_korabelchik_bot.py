@@ -44,6 +44,8 @@ def run():
     # image
     # bot.add_command(AskImageCommand(bot))
     # bot.add_command(SetImageCommand(bot))
+    # end registration
+    bot.add_command(EndRegistrationCommand(bot))
 
     bot.add_command(MainPageCommand(bot))
     bot.add_command(EditPageCommand(bot))
@@ -52,10 +54,12 @@ def run():
     bot.add_command(ViewMyCommand(bot))
     bot.add_command(LookingForCommand(bot))
     bot.add_command(LookingForPageCommand(bot))
+    bot.add_command(ClearReactionStoryCommand(bot))
 
     bot.add_command(GetFullUserInfoCommand(bot))
     bot.add_command(AddUserRoleCommand(bot))
     bot.add_command(RemoveUserRoleCommand(bot))
+    bot.add_command(DeleteUserCommand(bot))
 
     # ===== NEED TO DO ====
 

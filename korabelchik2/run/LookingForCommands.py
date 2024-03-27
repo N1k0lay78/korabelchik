@@ -89,7 +89,7 @@ class GetUserCommand(Command):
                 keyboard.add_line()
                 keyboard.add_button("на главную", VkKeyboardColor.PRIMARY, {"command": "main"})
                 if "moderator" in get_roles(event.user_id):
-                    keyboard.add_button("БАН", VkKeyboardColor.NEGATIVE, {"command": "edit"})
+                    keyboard.add_button("БАН", VkKeyboardColor.NEGATIVE, {"command": f"ban {user_id}"})
                 self.bot.send_message(event.user_id, f"{name}, {age} {yo}\n{fac}\nПол: {gender}\nО себе:\n{text}",
                                       attachment=img, keyboard=keyboard.get_keyboard())
             elif "keyboard2" in params:  # moderation
@@ -171,3 +171,14 @@ class AcceptCommand(Command):
             else:
                 self.bot.send_message(event.user_id, "Реакция не найдена")
                 self.bot.get_command("looking_for_page").function([], event)
+
+
+class ClearReactionStoryCommand(Command):
+    def __init__(self, bot):
+        super().__init__("clear_reaction_story", bot)
+
+    def function(self, params, event):
+        if clear_reaction_story(event.user_id):
+            self.bot.mark_as_read(event)
+        else:
+            self.bot.send_message(event.user_id, "Не удалось отчистить историю сообщений")

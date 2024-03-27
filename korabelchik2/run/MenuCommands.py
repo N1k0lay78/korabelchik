@@ -40,6 +40,9 @@ class LookingForPageCommand(Command):
         keyboard.add_button(f"Чьи анкеты интересны ({min(99, c_like_them)})", VkKeyboardColor.PRIMARY,
                             {"command": "likes_them"})
         keyboard.add_line()
+        keyboard.add_button(f"Отчистить историю реакций", VkKeyboardColor.PRIMARY,
+                            {"command": "clear_reaction_story"})
+        keyboard.add_line()
         if "moderator" in roles:
             keyboard.add_button("Модерация", VkKeyboardColor.SECONDARY, {"command": "warns"})
         keyboard.add_button("Главное меню", VkKeyboardColor.SECONDARY, {"command": "main"})
