@@ -400,9 +400,11 @@ def get_like_vk_profiles(like_id, vk_id):
     session = db_session.create_session()
     reaction = session.query(Reaction).get(like_id)
     if not reaction:
+        print("NO reaction")
         session.close()
         return None
     if reaction.from_user.vk_id != vk_id:
+        print("Not from this user")
         session.close()
         return None
     vk_id_1 = reaction.from_user.vk_id
