@@ -64,9 +64,12 @@ class GetUserCommand(Command):
             name, _surname = data1
             img = get_user_image(user_id)
             if img is None:
-                self.bot.send_message(event.user_id, "Не удалось найти изображение пользователя")
-                self.bot.get_command("main").function([], event)
-                return None
+                self.bot.save_image(user_id)
+                img = get_user_image(user_id)
+                if not img:
+                    self.bot.send_message(event.user_id, "Не удалось найти изображение пользователя")
+                    self.bot.get_command("main").function([], event)
+                    return None
             data2 = get_for_people_info(user_id)
             if data2 is None:
                 self.bot.send_message(event.user_id, "Не удалось найти информацию пользователе")
