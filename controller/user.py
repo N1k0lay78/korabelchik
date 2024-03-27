@@ -274,7 +274,7 @@ def get_random_for_people(vk_id):
     my = session.query(User).filter(User.vk_id == vk_id).first()
     if not my:  # if not find self
         session.close()
-        return vk_id
+        return None
     # get last 100 reactions
     looked_reactions = session.query(Reaction)\
         .filter(Reaction.from_user_id == my.id).order_by(-Reaction.time_created).limit(100)
@@ -283,14 +283,14 @@ def get_random_for_people(vk_id):
     user = session.query(User).filter(User.vk_id != vk_id,  # not self
                                       User.is_muted_for_people is not False,  # not muted
                                       User.is_active_questionnaire,  # active
-                                      User.id not in looked_users_id  # not in skip list
+                                      User.id.notin_(looked_users_id)  # not in skip list
                                       ).order_by(func.random()).first()
     session.close()
 
     if user:
         return user.vk_id
     else:
-        return vk_id
+        return None
 
 
 def clear_reaction_story(vk_id):

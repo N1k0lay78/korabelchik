@@ -179,6 +179,7 @@ class ClearReactionStoryCommand(Command):
 
     def function(self, params, event):
         if clear_reaction_story(event.user_id):
-            self.bot.mark_as_read(event)
+            self.bot.get_command("looking_for_page").function([], event)
         else:
             self.bot.send_message(event.user_id, "Не удалось отчистить историю сообщений")
+            self.bot.get_command("looking_for_page").function([], event)
