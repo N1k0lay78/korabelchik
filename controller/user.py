@@ -422,7 +422,7 @@ def get_like_vk_profiles(like_id, vk_id):
     for reaction in reactions:
         reaction.is_answered = True
         session.merge(reaction)
-    session.commit()
+        session.commit()
     session.close()
     return vk_id_1, vk_id_2
 
