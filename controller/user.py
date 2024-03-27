@@ -17,7 +17,7 @@ def is_user_authenticated(user_id):
 def add_role(user_id, role_name):
     session = db_session.create_session()
 
-    user = session.query(User).filter(User.vk_id == user_id).first()
+    user = session.query(User).get(user_id)
     if not user:
         session.close()
         return "Пользователь не найден"
@@ -39,7 +39,7 @@ def add_role(user_id, role_name):
 def remove_role(user_id, role_name):
     session = db_session.create_session()
 
-    user = session.query(User).filter(User.vk_id == user_id).first()
+    user = session.query(User).get(user_id)
     if not user:
         session.close()
         return "Пользователь не найден"
@@ -348,12 +348,20 @@ def get_reaction_statistic(vk_id):
     if not user:
         session.close()
         return None
-    count_likes_me = session.query(Reaction).filter(Reaction.to_user == user,
+    likes_me = session.query(Reaction).filter(Reaction.to_user == user,
                                                     Reaction.reaction == 1,
                                                     Reaction.is_answered == False).count()
-    count_likes_them = session.query(Reaction).filter(Reaction.from_user == user,
+    likes_them = session.query(Reaction).filter(Reaction.from_user == user,
                                                       Reaction.reaction == 1,
                                                       Reaction.is_answered == False).count()
+    users_likes_me = set()
+    for like_me in likes_me:
+        users_likes_me.add(like_me.from_user.id)
+    count_likes_me = len(users_likes_me)
+    users_likes_them = set()
+    for like_them in likes_them:
+        users_likes_them.add(like_them.to_user.id)
+    count_likes_them = len(users_likes_me)
     session.close()
     return count_likes_me, count_likes_them
 
@@ -407,8 +415,13 @@ def get_like_vk_profiles(like_id, vk_id):
         return None
     vk_id_1 = reaction.from_user.vk_id
     vk_id_2 = reaction.to_user.vk_id
-    reaction.is_answered = True
-    session.merge(reaction)
+    reactions = session.query(Reaction).filte(Reaction.from_user_id == vk_id_1,
+                                              Reaction.to_user_id == vk_id_2).all()
+    reactions.extends(session.query(Reaction).filte(Reaction.from_user_id == vk_id_2,
+                                              Reaction.to_user_id == vk_id_1).all())
+    for reaction in reactions:
+        reaction.is_answered = True
+        session.merge(reaction)
     session.commit()
     session.close()
     return vk_id_1, vk_id_2

@@ -52,7 +52,10 @@ def run():
     bot.add_command(ViewMyCommand(bot))
     bot.add_command(LookingForCommand(bot))
     bot.add_command(LookingForPageCommand(bot))
+
     bot.add_command(GetFullUserInfoCommand(bot))
+    bot.add_command(AddUserRoleCommand(bot))
+    bot.add_command(RemoveUserRoleCommand(bot))
 
     # ===== NEED TO DO ====
 
