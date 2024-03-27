@@ -53,6 +53,8 @@ def get_faculty(id):
 
 
 def get_faculty_longs_keys(id):
+    if id is None:
+        return "Факультет не указан"
     return faculty_longs_keys[id - 1]
 
 
