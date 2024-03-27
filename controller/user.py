@@ -270,8 +270,19 @@ def get_for_people_info(user_id):
     return res
 
 
-def add_reaction(from_user, to_user, reaction, is_answered=True):
+def get_user_full_info(user_id):
+    session = db_session.create_session()
+    user = session.query(User).get(user_id)
+    if not user:
+        session.close()
+        return None
+    res = user.faculty_id, user.age, "мужской" if user.is_male else "женский", user.vk_id, user.page, \
+          user.is_active_questionnaire, user.is_muted_for_people
+    session.close()
+    return res
 
+
+def add_reaction(from_user, to_user, reaction, is_answered=True):
     session = db_session.create_session()
     from_user = session.query(User).filter(User.vk_id == from_user).first()
     to_user = session.query(User).filter(User.vk_id == to_user).first()
