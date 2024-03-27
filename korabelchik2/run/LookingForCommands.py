@@ -159,7 +159,7 @@ class AcceptCommand(Command):
 
     def function(self, params, event):
         if validation_int(self.bot, event, params) and validate_page_id(self.bot, event, "likes_me"):
-            reaction_id = get_user_page(event.user_id).split()[1]
+            reaction_id = int(get_user_page(event.user_id).split()[1])
             reaction = int(params[0])
             data = get_like_vk_profiles(reaction_id, event.user_id)
             if data and reaction:  # like
