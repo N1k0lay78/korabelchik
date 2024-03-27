@@ -76,7 +76,10 @@ class GetUserCommand(Command):
                 return None
             text, fac, age, gender = data2
             # работает - не трогай, checked by rjkzavr at 1-100 yo
-            yo = ("год" if age % 10 == 1 else "года") if (5 > age % 10 > 0) and age // 10 != 1 else "лет"
+            if age is not None:
+                yo = ("год" if age % 10 == 1 else "года") if (5 > age % 10 > 0) and age // 10 != 1 else "лет"
+            else:
+                yo = "лет"
             if "keyboard" in params:  # looking for
                 keyboard = VkKeyboard(one_time=True)
                 keyboard.add_button("👎", VkKeyboardColor.PRIMARY, {"command": "reaction -1"})
