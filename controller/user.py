@@ -415,10 +415,10 @@ def get_like_vk_profiles(like_id, vk_id):
         return None
     vk_id_1 = reaction.from_user.vk_id
     vk_id_2 = reaction.to_user.vk_id
-    reactions = session.query(Reaction).filte(Reaction.from_user_id == vk_id_1,
-                                              Reaction.to_user_id == vk_id_2).all()
-    reactions.extends(session.query(Reaction).filte(Reaction.from_user_id == vk_id_2,
-                                              Reaction.to_user_id == vk_id_1).all())
+    reactions = session.query(Reaction).filter(Reaction.from_user_id == vk_id_1,
+                                               Reaction.to_user_id == vk_id_2).all()
+    reactions.extends(session.query(Reaction).filter(Reaction.from_user_id == vk_id_2,
+                                                     Reaction.to_user_id == vk_id_1).all())
     for reaction in reactions:
         reaction.is_answered = True
         session.merge(reaction)
