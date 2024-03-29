@@ -92,7 +92,7 @@ class Bot:
 
     def get_vk_image_href(self, vk_id):
         data = self.__vk.users.get(user_id=vk_id, fields="crop_photo")
-        if data:
+        if data and "crop_photo" in data[0]:
             return data[0]['crop_photo']["photo"]["sizes"][-1]["url"]
         return None
 
@@ -110,6 +110,9 @@ class Bot:
 
     def save_image(self, vk_id):
         img_href = self.get_vk_image_href(vk_id)
-        image = self.__session.get(img_href, stream=True)
-        photo = self.__upload.photo_messages(photos=image.raw)[0]
-        set_user_image(vk_id, 'photo{}_{}'.format(photo['owner_id'], photo['id']))
+        if img_href:
+            image = self.__session.get(img_href, stream=True)
+            photo = self.__upload.photo_messages(photos=image.raw)[0]
+            set_user_image(vk_id, 'photo{}_{}'.format(photo['owner_id'], photo['id']))
+        else:
+            set_user_image(vk_id, "None")
