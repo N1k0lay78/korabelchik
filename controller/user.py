@@ -183,34 +183,56 @@ def set_user_age(user_id, age):
     session = db_session.create_session()
 
     user = session.query(User).filter(User.vk_id == user_id).first()
+    if not user:
+        session.close()
+        return False
     user.age = int(age)
     session.merge(user)
     session.commit()
-
     session.close()
+    return True
 
 
 def set_user_gender(user_id, male):
     session = db_session.create_session()
 
     user = session.query(User).filter(User.vk_id == user_id).first()
+    if not user:
+        session.close()
+        return False
     user.is_male = male == "male"
     session.merge(user)
     session.commit()
-
     session.close()
+    return True
+
+
+def set_user_is_registered(vk_id):
+    session = db_session.create_session()
+    user = session.query(User).filter(User.vk_id == vk_id).first()
+    if not user:
+        session.close()
+        return False
+    user.is_active_questionnaire = True
+    session.merge(user)
+    session.commit()
+    session.close()
+    return True
 
 
 def set_user_faculty(user_id, faculty):
     session = db_session.create_session()
 
     user = session.query(User).filter(User.vk_id == user_id).first()
+    if not user:
+        session.close()
+        return False
     user.faculty_id = get_faculty_id(faculty)
     user.is_technical = get_faculty_is_technical(faculty)
     session.merge(user)
     session.commit()
-
     session.close()
+    return True
 
 
 def set_page(user_id, page):
@@ -246,17 +268,48 @@ def set_for_people(user_id, text):
     session.close()
 
 
-def get_random_for_people(user_id):
+def get_random_for_people(vk_id):
     session = db_session.create_session()
-    user = session.query(User).filter(User.vk_id != user_id,
-                                      User.is_muted_for_people is not False,
-                                      User.is_active_questionnaire).order_by(func.random()).first()
+    # get self
+    my = session.query(User).filter(User.vk_id == vk_id).first()
+    if not my:  # if not find self
+        session.close()
+        return None
+    # get last 100 reactions
+    looked_reactions = session.query(Reaction)\
+        .filter(Reaction.from_user_id == my.id).order_by(-Reaction.time_created).limit(100)
+    # add last 100 users to skip list
+    looked_users_id = set(map(lambda reaction: reaction.to_user_id, looked_reactions))
+    user = session.query(User).filter(User.vk_id != vk_id,  # not self
+                                      User.is_muted_for_people is not False,  # not muted
+                                      User.is_active_questionnaire,  # active
+                                      User.id.notin_(looked_users_id)  # not in skip list
+                                      ).order_by(func.random()).first()
     session.close()
 
     if user:
         return user.vk_id
     else:
-        return user_id
+        return None
+
+
+def clear_reaction_story(vk_id):
+    session = db_session.create_session()
+    my = session.query(User).filter(User.vk_id == vk_id).first()
+    if not my:
+        session.close()
+        return False
+    session.query(Reaction).filter(Reaction.from_user_id == my.id).delete(synchronize_session=False)
+    session.commit()
+    session.close()
+    return True
+
+
+def delete_user(vk_id):
+    session = db_session.create_session()
+    session.query(User).filter(User.vk_id == vk_id).delete(synchronize_session=False)
+    session.commit()
+    session.close()
 
 
 def get_for_people_info(user_id):
@@ -349,11 +402,11 @@ def get_reaction_statistic(vk_id):
         session.close()
         return None
     likes_me = session.query(Reaction).filter(Reaction.to_user == user,
-                                                    Reaction.reaction == 1,
-                                                    Reaction.is_answered == False).all()
+                                              Reaction.reaction == 1,
+                                              Reaction.is_answered == False).all()
     likes_them = session.query(Reaction).filter(Reaction.from_user == user,
-                                                      Reaction.reaction == 1,
-                                                      Reaction.is_answered == False).all()
+                                                Reaction.reaction == 1,
+                                                Reaction.is_answered == False).all()
     users_likes_me = set()
     for like_me in likes_me:
         users_likes_me.add(like_me.from_user.id)
@@ -373,8 +426,8 @@ def get_likes_me(user_id):
         session.close()
         return None
     reaction = session.query(Reaction).filter(Reaction.to_user == user,
-                                               Reaction.reaction == 1,
-                                               Reaction.is_answered == False).order_by(Reaction.id).first()
+                                              Reaction.reaction == 1,
+                                              Reaction.is_answered == False).order_by(Reaction.id).first()
     # reaction = reactions[0]
     if not reaction:
         session.close()

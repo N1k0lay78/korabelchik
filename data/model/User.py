@@ -23,5 +23,5 @@ class User(SqlAlchemyBase):
     react_me = orm.relationship("Reaction", back_populates="to_user", primaryjoin="User.id==Reaction.to_user_id")
     warns = sqlalchemy.Column(sqlalchemy.Integer, default=0, server_default="0")
     is_muted_for_people = sqlalchemy.Column(sqlalchemy.Boolean, default=False, server_default="0")
-    is_active_questionnaire = sqlalchemy.Column(sqlalchemy.Boolean, default=True, server_default="1")
+    is_active_questionnaire = sqlalchemy.Column(sqlalchemy.Boolean, default=False, server_default="0")
     # reports_for_people = None

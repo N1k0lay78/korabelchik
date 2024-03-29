@@ -53,3 +53,13 @@ class GetFullUserInfoCommand(Command):
                 self.bot.send_message(event.user_id, f"fac_id: {info[0]}\nage: {info[1]}\ngender: {info[2]}\nvk_id: {info[3]}\npage: {info[4]}\nis_active: {info[5]}\nis_muted: {info[6]}")
             else:
                 self.bot.send_message(event.user_id, f"пользователь не найден")
+
+
+class DeleteUserCommand(Command):
+    def __init__(self, bot):
+        super().__init__("delete_user", bot)
+
+    def function(self, params, event):
+        if validation_role(self.bot, event, ["owner"]) and validation_int(self.bot, event, params):
+            delete_user(int(params[0]))
+            self.bot.mark_as_read(event)
